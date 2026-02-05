@@ -2,6 +2,7 @@
 
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/utils'
 import { z } from 'zod'
@@ -42,7 +43,7 @@ export async function createDocument(data: z.infer<typeof createDocumentSchema>)
       return { error: 'Sem permissão para criar documentos' }
     }
 
-    const slug = slugify(validated.title)
+    let slug = slugify(validated.title)
     const existing = await prisma.document.findUnique({
       where: {
         workspaceId_slug: {
@@ -51,12 +52,11 @@ export async function createDocument(data: z.infer<typeof createDocumentSchema>)
         },
       },
     })
-
     if (existing) {
-      return { error: 'Já existe um documento com este título' }
+      slug = `${slug}-${Date.now()}`
     }
 
-    // Criar documento
+    // Criar documento (identificação por id; slug só para compatibilidade do schema)
     const document = await prisma.document.create({
       data: {
         workspaceId: validated.workspaceId,
@@ -175,7 +175,7 @@ export async function updateDocument(data: z.infer<typeof updateDocumentSchema>)
       data: {
         documentId: validated.documentId,
         userId: session.user.id,
-        content: document.content,
+        content: document.content as Prisma.InputJsonValue,
         version: newVersion,
       },
     })

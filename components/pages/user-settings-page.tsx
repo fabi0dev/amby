@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { User, Envelope, Lock, Trash } from '@phosphor-icons/react'
 import { updateUser, changePassword } from '@/app/actions/user'
 import { useToast } from '@/components/ui/use-toast'
@@ -17,6 +18,8 @@ export function UserSettingsPage() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const [name, setName] = useState(session?.user?.name || '')
   const [email] = useState(session?.user?.email || '')
   const [currentPassword, setCurrentPassword] = useState('')
@@ -95,6 +98,22 @@ export function UserSettingsPage() {
     }
   }
 
+  const handleConfirmDeleteAccount = async () => {
+    setIsDeletingAccount(true)
+    try {
+      // TODO: implementar deleteUser / excluir conta server action
+      await new Promise((r) => setTimeout(r, 800))
+      toast({
+        title: 'Em desenvolvimento',
+        description: 'Exclusão de conta será implementada em breve.',
+        variant: 'destructive',
+      })
+      setIsDeleteDialogOpen(false)
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
       <PageHeader
@@ -105,7 +124,7 @@ export function UserSettingsPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto flex justify-center">
-        <div className="w-full max-w-3xl px-6 py-8 md:px-8">
+        <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           {/* Perfil */}
           <div className="space-y-6">
             <div>
@@ -204,7 +223,11 @@ export function UserSettingsPage() {
                     Ao excluir sua conta, todos os seus dados serão permanentemente removidos.
                     Esta ação não pode ser desfeita.
                   </p>
-                  <Button variant="destructive">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    disabled={isDeletingAccount}
+                  >
                     <Trash className="h-4 w-4 mr-2" />
                     Excluir Conta
                   </Button>
@@ -214,6 +237,16 @@ export function UserSettingsPage() {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Excluir Conta"
+        description="Tem certeza? Todos os seus dados serão removidos permanentemente. Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        loading={isDeletingAccount}
+        onConfirm={handleConfirmDeleteAccount}
+      />
       <Toaster />
     </div>
   )

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Trash } from '@phosphor-icons/react'
 import { Role } from '@prisma/client'
 import { PageHeader } from '@/components/layout/page-header'
@@ -34,6 +35,8 @@ interface WorkspaceSettingsPageProps {
 export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [name, setName] = useState(workspace.name)
   const [description, setDescription] = useState(workspace.description || '')
 
@@ -93,6 +96,22 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
     return labels[role]
   }
 
+  const handleConfirmDeleteWorkspace = async () => {
+    setIsDeleting(true)
+    try {
+      // TODO: implementar deleteWorkspace server action
+      await new Promise((r) => setTimeout(r, 800))
+      toast({
+        title: 'Em desenvolvimento',
+        description: 'Exclusão de workspace será implementada em breve.',
+        variant: 'destructive',
+      })
+      setIsDeleteDialogOpen(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="flex h-full flex-col mx-auto">
       <PageHeader
@@ -103,7 +122,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto flex justify-center">
-        <div className="w-full max-w-3xl px-6 py-8 md:px-8">
+        <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           <div className="space-y-10">
             {/* Geral */}
             <div>
@@ -134,17 +153,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                   />
                 </div>
 
-                <div className="space-y-2 pt-2 border-t">
-                  <Label>Hostname</Label>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-sm text-muted-foreground truncate">
-                      {hostname}
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Alterar hostname
-                    </Button>
-                  </div>
-                </div>
+
 
                 <div>
                   <Button onClick={handleSave} disabled={isLoading}>
@@ -167,7 +176,11 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                     Ao excluir o workspace, todos os documentos e dados serão permanentemente removidos.
                     Esta ação não pode ser desfeita.
                   </p>
-                  <Button variant="destructive">
+                  <Button
+                    variant="destructive"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    disabled={isDeleting}
+                  >
                     <Trash className="h-4 w-4 mr-2" />
                     Excluir Workspace
                   </Button>
@@ -177,6 +190,16 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Excluir Workspace"
+        description="Tem certeza? Todos os documentos e dados serão removidos permanentemente. Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        loading={isDeleting}
+        onConfirm={handleConfirmDeleteWorkspace}
+      />
       <Toaster />
     </div>
   )

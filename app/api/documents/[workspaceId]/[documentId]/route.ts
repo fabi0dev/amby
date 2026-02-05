@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { workspaceId: string; slug: string } }
+  { params }: { params: { workspaceId: string; documentId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -14,7 +14,6 @@ export async function GET(
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    // Verificar se o usuário tem acesso ao workspace
     const member = await prisma.workspaceMember.findFirst({
       where: {
         workspaceId: params.workspaceId,
@@ -29,12 +28,11 @@ export async function GET(
       )
     }
 
-    const document = await prisma.document.findUnique({
+    const document = await prisma.document.findFirst({
       where: {
-        workspaceId_slug: {
-          workspaceId: params.workspaceId,
-          slug: params.slug,
-        },
+        id: params.documentId,
+        workspaceId: params.workspaceId,
+        deletedAt: null,
       },
       include: {
         tree: true,
@@ -56,7 +54,7 @@ export async function GET(
       },
     })
 
-    if (!document || document.deletedAt) {
+    if (!document) {
       return NextResponse.json(
         { error: 'Documento não encontrado' },
         { status: 404 }

@@ -1863,6 +1863,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-link@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-link@npm:3.19.0"
+  dependencies:
+    linkifyjs: "npm:^4.3.2"
+  peerDependencies:
+    "@tiptap/core": ^3.19.0
+    "@tiptap/pm": ^3.19.0
+  checksum: 10c0/581fbf23f1ac47cb1c312d11d6fc4bd0d5814ce355685e20c1c1eccc49dc94705a2d2963117779d91b7b24a45b71bfbc538f3b0b85f635d0b515c5fb2f4f5398
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-list-item@npm:^2.27.2":
   version: 2.27.2
   resolution: "@tiptap/extension-list-item@npm:2.27.2"
@@ -1899,6 +1911,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-task-item@npm:2.1.0-rc.3":
+  version: 2.1.0-rc.3
+  resolution: "@tiptap/extension-task-item@npm:2.1.0-rc.3"
+  peerDependencies:
+    "@tiptap/core": ^2.0.0
+    "@tiptap/pm": ^2.0.0
+  checksum: 10c0/7eb9727f31032d148deda9388b43d9b9fbbae42f50ed4743b5b9aacfd8c686df9a63a93ca3ef7e5ed7bc9ec46952686c03f7cc38947a1ba3ad053de896ba122d
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-task-list@npm:2.1.0-rc.3":
+  version: 2.1.0-rc.3
+  resolution: "@tiptap/extension-task-list@npm:2.1.0-rc.3"
+  peerDependencies:
+    "@tiptap/core": ^2.0.0
+  checksum: 10c0/cb36f1fa5ab4e9beaa223d8f0b3d508f219b902ffd8ec9ab14acf94b0d6ba8d75796d73710841e8b87a826b7adf9c17f674c3a036043a82e263629f9d4b2b7ac
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-text-align@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-text-align@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/core": ^3.19.0
+  checksum: 10c0/db74357471ae56cfca5297bb9f732944baaacf107a44d0ace296053afc064494dd8637496ba37b4aabdc6284aded82fc0aafdeddc27562bf6d8347cd1b1986f6
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-text-style@npm:^2.27.2":
   version: 2.27.2
   resolution: "@tiptap/extension-text-style@npm:2.27.2"
@@ -1914,6 +1954,15 @@ __metadata:
   peerDependencies:
     "@tiptap/core": ^2.7.0
   checksum: 10c0/c41b281cecb63b657130ad32eb9bd490b42dcda9ff021e539c9c2c0c216561ae1c391dd1d1831533c56e334741663ef3cf9e7becf3841a968927de821d41761a
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-underline@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-underline@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/core": ^3.19.0
+  checksum: 10c0/fce1b90cdbb7a592082300345bbf18b1c1342c4851468168119cd3b3b2eac92b0f8976d3bef18b7cf4cdb5e50cef2582b6d8a7581dc8c20897273aceb1c9173b
   languageName: node
   linkType: hard
 
@@ -2328,6 +2377,65 @@ __metadata:
   checksum: 10c0/41e23642cbe545889245b9d2a45854ebba51cda6c778ebced9649420d9205f2efb39cb43dbc41e358409223b1ea43303ae4839db682c848b891e4811da1a5a71
   languageName: node
   linkType: hard
+
+"amby@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "amby@workspace:."
+  dependencies:
+    "@auth/prisma-adapter": "npm:^2.4.0"
+    "@hookform/resolvers": "npm:^3.3.4"
+    "@lukemorales/query-key-factory": "npm:^1.3.4"
+    "@phosphor-icons/react": "npm:^2.1.10"
+    "@prisma/client": "npm:^5.9.1"
+    "@radix-ui/react-dialog": "npm:^1.0.5"
+    "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
+    "@radix-ui/react-label": "npm:^2.0.2"
+    "@radix-ui/react-popover": "npm:^1.0.7"
+    "@radix-ui/react-select": "npm:^2.0.0"
+    "@radix-ui/react-separator": "npm:^1.0.5"
+    "@radix-ui/react-slot": "npm:^1.0.2"
+    "@radix-ui/react-toast": "npm:^1.1.5"
+    "@radix-ui/react-tooltip": "npm:^1.0.7"
+    "@tanstack/react-query": "npm:^5.17.19"
+    "@tiptap/extension-collaboration": "npm:^2.1.13"
+    "@tiptap/extension-collaboration-cursor": "npm:^2.1.13"
+    "@tiptap/extension-link": "npm:^3.19.0"
+    "@tiptap/extension-task-item": "npm:2.1.0-rc.3"
+    "@tiptap/extension-task-list": "npm:2.1.0-rc.3"
+    "@tiptap/extension-text-align": "npm:^3.19.0"
+    "@tiptap/extension-underline": "npm:^3.19.0"
+    "@tiptap/pm": "npm:^2.1.13"
+    "@tiptap/react": "npm:^2.1.13"
+    "@tiptap/starter-kit": "npm:^2.1.13"
+    "@types/bcryptjs": "npm:^2.4.6"
+    "@types/node": "npm:^20.11.5"
+    "@types/react": "npm:^18.2.48"
+    "@types/react-dom": "npm:^18.2.18"
+    autoprefixer: "npm:^10.4.17"
+    bcryptjs: "npm:^2.4.3"
+    class-variance-authority: "npm:^0.7.0"
+    clsx: "npm:^2.1.0"
+    cmdk: "npm:^0.2.0"
+    date-fns: "npm:^3.0.6"
+    eslint: "npm:^8.56.0"
+    eslint-config-next: "npm:14.1.0"
+    next: "npm:14.1.0"
+    next-auth: "npm:^4.24.5"
+    postgres: "npm:^3.4.3"
+    prisma: "npm:^5.9.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    react-hook-form: "npm:^7.49.3"
+    tailwind-merge: "npm:^2.2.1"
+    tailwindcss: "npm:^3.4.1"
+    tailwindcss-animate: "npm:^1.0.7"
+    tsx: "npm:^4.7.1"
+    typescript: "npm:^5.3.3"
+    yjs: "npm:^13.6.10"
+    zod: "npm:^3.22.4"
+    zustand: "npm:^4.5.0"
+  languageName: unknown
+  linkType: soft
 
 "ansi-regex@npm:^5.0.1":
   version: 5.0.1
@@ -3003,60 +3111,6 @@ __metadata:
   checksum: 10c0/03eb4e769f19a027fd5b43b59e8a05e3fd2100ac239ebb0bf9a745de35d449e2f25cfaf3aa3934664551d72856f4ae8b7822016ce5c42c2d27c18ae79429ec42
   languageName: node
   linkType: hard
-
-"docmost@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "docmost@workspace:."
-  dependencies:
-    "@auth/prisma-adapter": "npm:^2.4.0"
-    "@hookform/resolvers": "npm:^3.3.4"
-    "@lukemorales/query-key-factory": "npm:^1.3.4"
-    "@phosphor-icons/react": "npm:^2.1.10"
-    "@prisma/client": "npm:^5.9.1"
-    "@radix-ui/react-dialog": "npm:^1.0.5"
-    "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
-    "@radix-ui/react-label": "npm:^2.0.2"
-    "@radix-ui/react-popover": "npm:^1.0.7"
-    "@radix-ui/react-select": "npm:^2.0.0"
-    "@radix-ui/react-separator": "npm:^1.0.5"
-    "@radix-ui/react-slot": "npm:^1.0.2"
-    "@radix-ui/react-toast": "npm:^1.1.5"
-    "@radix-ui/react-tooltip": "npm:^1.0.7"
-    "@tanstack/react-query": "npm:^5.17.19"
-    "@tiptap/extension-collaboration": "npm:^2.1.13"
-    "@tiptap/extension-collaboration-cursor": "npm:^2.1.13"
-    "@tiptap/pm": "npm:^2.1.13"
-    "@tiptap/react": "npm:^2.1.13"
-    "@tiptap/starter-kit": "npm:^2.1.13"
-    "@types/bcryptjs": "npm:^2.4.6"
-    "@types/node": "npm:^20.11.5"
-    "@types/react": "npm:^18.2.48"
-    "@types/react-dom": "npm:^18.2.18"
-    autoprefixer: "npm:^10.4.17"
-    bcryptjs: "npm:^2.4.3"
-    class-variance-authority: "npm:^0.7.0"
-    clsx: "npm:^2.1.0"
-    cmdk: "npm:^0.2.0"
-    date-fns: "npm:^3.0.6"
-    eslint: "npm:^8.56.0"
-    eslint-config-next: "npm:14.1.0"
-    next: "npm:14.1.0"
-    next-auth: "npm:^4.24.5"
-    postgres: "npm:^3.4.3"
-    prisma: "npm:^5.9.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    react-hook-form: "npm:^7.49.3"
-    tailwind-merge: "npm:^2.2.1"
-    tailwindcss: "npm:^3.4.1"
-    tailwindcss-animate: "npm:^1.0.7"
-    tsx: "npm:^4.7.1"
-    typescript: "npm:^5.3.3"
-    yjs: "npm:^13.6.10"
-    zod: "npm:^3.22.4"
-    zustand: "npm:^4.5.0"
-  languageName: unknown
-  linkType: soft
 
 "doctrine@npm:^2.1.0":
   version: 2.1.0
@@ -4657,6 +4711,13 @@ __metadata:
   dependencies:
     uc.micro: "npm:^2.0.0"
   checksum: 10c0/ff4abbcdfa2003472fc3eb4b8e60905ec97718e11e33cca52059919a4c80cc0e0c2a14d23e23d8c00e5402bc5a885cdba8ca053a11483ab3cc8b3c7a52f88e2d
+  languageName: node
+  linkType: hard
+
+"linkifyjs@npm:^4.3.2":
+  version: 4.3.2
+  resolution: "linkifyjs@npm:4.3.2"
+  checksum: 10c0/1a85e6b368304a4417567fe5e38651681e3e82465590836942d1b4f3c834cc35532898eb1e2479f6337d9144b297d418eb708b6be8ed0b3dc3954a3588e07971
   languageName: node
   linkType: hard
 

@@ -25,14 +25,14 @@ export function useDocumentTree(workspaceId: string) {
   })
 }
 
-export function useDocument(workspaceId: string, slug: string) {
+export function useDocument(workspaceId: string, documentId: string) {
   return useQuery({
-    queryKey: queryKeys.documents.detail(workspaceId, slug).queryKey,
+    queryKey: queryKeys.documents.detail(workspaceId, documentId).queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/documents/${workspaceId}/${slug}`)
+      const res = await fetch(`/api/documents/${workspaceId}/${documentId}`)
       if (!res.ok) throw new Error('Erro ao buscar documento')
       return res.json()
     },
-    enabled: !!workspaceId && !!slug,
+    enabled: !!workspaceId && !!documentId,
   })
 }

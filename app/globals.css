@@ -41,7 +41,8 @@
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Vermelho mais claro no dark para contraste em fundos escuros (popover, card) */
+    --destructive: 0 72% 58%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
@@ -55,6 +56,31 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Lista de páginas (sidebar) – scroll contido e barra discreta */
+.document-tree-list {
+  scrollbar-gutter: stable;
+}
+.document-tree-list::-webkit-scrollbar {
+  width: 6px;
+}
+.document-tree-list::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 3px;
+}
+.document-tree-list::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.35);
+  border-radius: 3px;
+}
+.document-tree-list::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+@supports (scrollbar-width: thin) {
+  .document-tree-list {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.35) hsl(var(--muted) / 0.5);
   }
 }
 
@@ -118,6 +144,108 @@
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-left: 1.5em;
+}
+
+.ProseMirror ul:not([data-type='taskList']):not(:has(> li > label input[type='checkbox'])) {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+
+/* Lista de tarefas: checkbox ao lado do texto, estilizado */
+/* Suporta tanto data-type (renderHTML) quanto estrutura label+input (node view) */
+.ProseMirror ul[data-type='taskList'],
+.ProseMirror ul:has(> li > label input[type='checkbox']) {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror li[data-type='taskItem'],
+.ProseMirror li:has(> label input[type='checkbox']) {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+  line-height: 1.7;
+}
+
+.ProseMirror li[data-type='taskItem'] > label,
+.ProseMirror li:has(> label input[type='checkbox']) > label {
+  flex-shrink: 0;
+  margin-top: 0.35em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  order: -1;
+}
+
+/* Checkbox estilizado, ao lado do texto */
+.ProseMirror li[data-type='taskItem'] input[type='checkbox'],
+.ProseMirror li:has(> label input[type='checkbox']) input[type='checkbox'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+  border-radius: 0.25rem;
+  border: 2px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  transition: border-color 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+}
+
+.ProseMirror li[data-type='taskItem'] input[type='checkbox']:hover,
+.ProseMirror li:has(> label input[type='checkbox']) input[type='checkbox']:hover {
+  border-color: hsl(var(--primary) / 0.6);
+}
+
+.ProseMirror li[data-type='taskItem'] input[type='checkbox']:checked,
+.ProseMirror li:has(> label input[type='checkbox']) input[type='checkbox']:checked {
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--primary));
+}
+
+.ProseMirror li[data-type='taskItem'] input[type='checkbox']:checked::after,
+.ProseMirror li:has(> label input[type='checkbox']) input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.ProseMirror li[data-type='taskItem'] input[type='checkbox']:focus-visible,
+.ProseMirror li:has(> label input[type='checkbox']) input[type='checkbox']:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.ProseMirror li[data-type='taskItem'] > div,
+.ProseMirror li:has(> label input[type='checkbox']) > div {
+  flex: 1;
+  min-width: 0;
+  margin-left: 0;
+}
+
+.ProseMirror li[data-type='taskItem'][data-checked='true'] > div,
+.ProseMirror li:has(> label input[type='checkbox']:checked) > div {
+  text-decoration: line-through;
+  color: hsl(var(--muted-foreground));
 }
 
 .ProseMirror li {
@@ -189,4 +317,35 @@
 
 .ProseMirror a:hover {
   color: hsl(var(--primary) / 0.8);
+}
+
+/* ========== Animações globais ========== */
+@layer utilities {
+  .animate-in {
+    animation-duration: 0.25s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
+  }
+  .transition-smooth {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-duration: 0.2s;
+  }
+  .transition-smooth-fast {
+    transition-duration: 0.15s;
+  }
+}
+
+/* Redução de movimento para acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-stagger-in,
+  .transition-smooth,
+  [class*="animate-"] {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

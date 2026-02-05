@@ -8,7 +8,7 @@ import { MainLayout } from '@/components/layout/main-layout'
 export default async function DocumentPage({
   params,
 }: {
-  params: { workspaceId: string; slug: string }
+  params: { workspaceId: string; documentId: string }
 }) {
   const session = await getServerSession(authOptions)
 
@@ -16,12 +16,11 @@ export default async function DocumentPage({
     redirect('/login')
   }
 
-  const document = await prisma.document.findUnique({
+  const document = await prisma.document.findFirst({
     where: {
-      workspaceId_slug: {
-        workspaceId: params.workspaceId,
-        slug: params.slug,
-      },
+      id: params.documentId,
+      workspaceId: params.workspaceId,
+      deletedAt: null,
     },
     include: {
       workspace: {
@@ -36,17 +35,13 @@ export default async function DocumentPage({
     },
   })
 
-  if (!document || document.deletedAt) {
+  if (!document || document.workspace.members.length === 0) {
     redirect(`/workspace/${params.workspaceId}`)
-  }
-
-  if (document.workspace.members.length === 0) {
-    redirect('/home')
   }
 
   return (
     <MainLayout>
-      <WorkspaceLayout workspaceId={params.workspaceId} documentSlug={params.slug} />
+      <WorkspaceLayout workspaceId={params.workspaceId} documentId={params.documentId} />
     </MainLayout>
   )
 }
