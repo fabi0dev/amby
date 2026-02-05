@@ -113,15 +113,15 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
   }
 
   return (
-    <div className="flex h-full flex-col mx-auto">
+    <div className="flex flex-col w-full min-h-0">
       <PageHeader
         title="Configurações do Espaço"
         description="Gerencie as configurações e membros do workspace"
         showBackButton
       />
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto flex justify-center">
+      {/* Content - altura natural; scroll fica no MainLayout */}
+      <div className="flex justify-center flex-shrink-0">
         <div className="w-full max-w-3xl px-6 py-8 md:px-8 animate-fade-in-up">
           <div className="space-y-10">
             {/* Geral */}
@@ -166,7 +166,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
             {/* Zona de Perigo */}
             <div>
               <h2 className="text-xl font-semibold mb-4 text-destructive flex items-center gap-2">
-                <Trash className="h-5 w-5" />
+                <Trash size={22} />
                 Zona de Perigo
               </h2>
               <div className="space-y-4 bg-card rounded-lg border border-destructive/20 p-6">
@@ -181,7 +181,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                     onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={isDeleting}
                   >
-                    <Trash className="h-4 w-4 mr-2" />
+                    <Trash size={22} className="mr-2" />
                     Excluir Workspace
                   </Button>
                 </div>

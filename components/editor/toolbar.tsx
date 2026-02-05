@@ -199,40 +199,40 @@ export function Toolbar({ editor }: ToolbarProps) {
                   className="h-7 shrink-0 gap-1 rounded-md px-2 text-xs font-medium text-foreground hover:bg-primary/10 hover:text-primary"
                 >
                   {getCurrentBlockLabel(editor)}
-                  <CaretDown className="h-3 w-3 opacity-60" />
+                  <CaretDown size={22} className="opacity-60" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Tipo de bloco</TooltipContent>
             </Tooltip>
           }
-        content={(close) =>
-          textBlockOptions.map((option) => {
-            const active = isBlockActive(editor, option)
-            const Icon = option.Icon
-            return (
-              <button
-                key={`${option.type}-${option.level ?? ''}`}
-                type="button"
-                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                onClick={() => {
-                  runBlockCommand(editor, option)
-                  close()
-                }}
-              >
-                {option.type === 'heading' && option.level ? (
-                  <span className="w-5 text-center text-xs font-bold text-muted-foreground">H{option.level}</span>
-                ) : option.type === 'codeBlock' ? (
-                  <Code className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ) : Icon ? (
-                  <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                ) : null}
-                <span className="flex-1 text-left">{option.label}</span>
-                {active && <Check className="h-4 w-4 shrink-0 text-primary" weight="bold" />}
-              </button>
-            )
-          })
-        }
-      />
+          content={(close) =>
+            textBlockOptions.map((option) => {
+              const active = isBlockActive(editor, option)
+              const Icon = option.Icon
+              return (
+                <button
+                  key={`${option.type}-${option.level ?? ''}`}
+                  type="button"
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                  onClick={() => {
+                    runBlockCommand(editor, option)
+                    close()
+                  }}
+                >
+                  {option.type === 'heading' && option.level ? (
+                    <span className="w-5 text-center text-xs font-bold text-muted-foreground">H{option.level}</span>
+                  ) : option.type === 'codeBlock' ? (
+                    <Code size={22} className="shrink-0 text-muted-foreground" />
+                  ) : Icon ? (
+                    <Icon className="h-[22px] w-[22px] shrink-0 text-muted-foreground" />
+                  ) : null}
+                  <span className="flex-1 text-left">{option.label}</span>
+                  {active && <Check size={22} className="shrink-0 text-primary" weight="bold" />}
+                </button>
+              )
+            })
+          }
+        />
 
         <div className="mx-0.5 h-3.5 w-px shrink-0 bg-border/50" aria-hidden />
 
@@ -251,31 +251,31 @@ export function Toolbar({ editor }: ToolbarProps) {
                     const current = getCurrentAlignment(editor)
                     const config = alignments.find((a) => a.value === current)
                     const Icon = config?.Icon ?? TextAlignLeft
-                    return <Icon className="h-3.5 w-3.5" />
+                    return <Icon className="h-[22px] w-[22px]" />
                   })()}
-                  <CaretDown className="h-2.5 w-2.5 opacity-60" />
+                  <CaretDown size={22} className="opacity-60" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Alinhamento</TooltipContent>
             </Tooltip>
           }
-        content={(close) =>
-          alignments.map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              type="button"
-              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-              onClick={() => {
-                if (hasSetTextAlign) (editor.commands as any).setTextAlign(value)
-                close()
-              }}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </button>
-          ))
-        }
-      />
+          content={(close) =>
+            alignments.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                onClick={() => {
+                  if (hasSetTextAlign) (editor.commands as any).setTextAlign(value)
+                  close()
+                }}
+              >
+                <Icon className="h-[22px] w-[22px]" />
+                {label}
+              </button>
+            ))
+          }
+        />
         <div className="mx-0.5 h-3.5 w-px shrink-0 bg-border/50" aria-hidden />
 
         {/* Grupo: B I U S */}
@@ -290,7 +290,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               )}
               onClick={() => editor.chain().focus().toggleBold().run()}
             >
-              <TextB className="h-3.5 w-3.5 font-bold" />
+              <TextB size={22} className="font-bold" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Negrito</TooltipContent>
@@ -306,7 +306,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               )}
               onClick={() => editor.chain().focus().toggleItalic().run()}
             >
-              <TextItalic className="h-3.5 w-3.5" />
+              <TextItalic size={22} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Itálico</TooltipContent>
@@ -340,7 +340,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               )}
               onClick={() => editor.chain().focus().toggleStrike().run()}
             >
-              <TextStrikethrough className="h-3.5 w-3.5" />
+              <TextStrikethrough size={22} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Tachado</TooltipContent>
@@ -360,7 +360,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               )}
               onClick={() => editor.chain().focus().toggleCode().run()}
             >
-              <Code className="h-3.5 w-3.5" />
+              <Code size={22} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Código</TooltipContent>
@@ -380,7 +380,7 @@ export function Toolbar({ editor }: ToolbarProps) {
                   if (url) (editor.commands as any).setLink({ href: url })
                 }}
               >
-                <LinkIcon className="h-3.5 w-3.5" />
+                <LinkIcon size={22} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="top">Inserir link</TooltipContent>
@@ -397,18 +397,18 @@ export function Toolbar({ editor }: ToolbarProps) {
                   className="h-7 shrink-0 gap-0.5 rounded-md px-1.5 text-foreground hover:bg-primary/10 hover:text-primary"
                 >
                   <span className="text-xs font-semibold">A</span>
-                  <CaretDown className="h-2.5 w-2.5 opacity-60" />
+                  <CaretDown size={22} className="opacity-60" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">Cor do texto</TooltipContent>
             </Tooltip>
           }
-        content={(close) => (
-          <div className="px-2 py-1.5 text-xs text-muted-foreground" onClick={close}>
-            Cor do texto (em breve)
-          </div>
-        )}
-      />
+          content={(close) => (
+            <div className="px-2 py-1.5 text-xs text-muted-foreground" onClick={close}>
+              Cor do texto (em breve)
+            </div>
+          )}
+        />
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -417,7 +417,7 @@ export function Toolbar({ editor }: ToolbarProps) {
               size="icon"
               className="h-7 w-7 shrink-0 rounded-md text-foreground hover:bg-primary/10 hover:text-primary"
             >
-              <ChatCircle className="h-3.5 w-3.5" />
+              <ChatCircle size={22} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="top">Comentário (em breve)</TooltipContent>

@@ -129,7 +129,7 @@ export function UserSettingsPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <User className="h-5 w-5" />
+                <User size={22} />
                 Informações do Perfil
               </h2>
               <div className="space-y-4 bg-card rounded-lg border p-6">
@@ -145,7 +145,7 @@ export function UserSettingsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
-                    <Envelope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Envelope size={22} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="email"
                       value={email}
@@ -168,7 +168,7 @@ export function UserSettingsPage() {
             {/* Segurança */}
             <div>
               <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Lock className="h-5 w-5" />
+                <Lock size={22} />
                 Segurança
               </h2>
               <div className="space-y-4 bg-card rounded-lg border p-6">
@@ -213,7 +213,7 @@ export function UserSettingsPage() {
             {/* Zona de Perigo */}
             <div>
               <h2 className="text-xl font-semibold mb-4 text-destructive flex items-center gap-2">
-                <Trash className="h-5 w-5" />
+                <Trash size={22} />
                 Zona de Perigo
               </h2>
               <div className="space-y-4 bg-card rounded-lg border border-destructive/20 p-6">
@@ -228,7 +228,7 @@ export function UserSettingsPage() {
                     onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={isDeletingAccount}
                   >
-                    <Trash className="h-4 w-4 mr-2" />
+                    <Trash size={22} className="mr-2" />
                     Excluir Conta
                   </Button>
                 </div>

@@ -67,7 +67,7 @@ export function PageHeader({
             onClick={handleBack}
             className="h-9 w-9"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={22} />
           </Button>
         )}
 

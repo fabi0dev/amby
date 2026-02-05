@@ -26,7 +26,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
 
   const blocks: BlockOption[] = [
     {
-      icon: <Table className="h-5 w-5" />,
+      icon: <Table size={22} />,
       label: 'Tabela',
       description: 'Inserir uma tabela',
       action: (editor) => {
@@ -35,7 +35,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <CaretRight className="h-5 w-5" />,
+      icon: <CaretRight size={22} />,
       label: 'Bloco recolhível',
       description: 'Inserir bloco colapsável',
       action: (editor) => {
@@ -44,7 +44,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <Info className="h-5 w-5" />,
+      icon: <Info size={22} />,
       label: 'Destaque',
       description: 'Inserir aviso de destaque',
       action: (editor) => {
@@ -53,7 +53,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <Code className="h-5 w-5" />,
+      icon: <Code size={22} />,
       label: 'Código inline',
       description: 'Inserir código inline',
       action: (editor) => {
@@ -62,7 +62,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <Code className="h-5 w-5" />,
+      icon: <Code size={22} />,
       label: 'Bloco de código',
       description: 'Inserir bloco de código',
       action: (editor) => {
@@ -71,7 +71,7 @@ export function BlockMenu({ editor, onClose }: BlockMenuProps) {
       },
     },
     {
-      icon: <Quotes className="h-5 w-5" />,
+      icon: <Quotes size={22} />,
       label: 'Citação',
       description: 'Inserir citação',
       action: (editor) => {

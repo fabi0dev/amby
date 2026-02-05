@@ -193,16 +193,16 @@ export function DocumentHeaderMenu({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <DotsThree className="h-4 w-4" weight="bold" />
+              <DotsThree size={22} weight="bold" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={handleCopyLink}>
-              <LinkIcon className="mr-2 h-4 w-4" />
+              <LinkIcon size={22} className="mr-2" />
               Copiar link
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCopyMarkdown}>
-              <DownloadSimple className="mr-2 h-4 w-4" />
+              <DownloadSimple size={22} className="mr-2" />
               Copiar como Markdown
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -210,11 +210,11 @@ export function DocumentHeaderMenu({
               checked={fullWidth}
               onCheckedChange={handleFullWidthToggle}
             >
-              <ArrowsOutLineHorizontal className="mr-2 h-4 w-4" />
+              <ArrowsOutLineHorizontal size={22} className="mr-2" />
               Largura total
             </DropdownMenuCheckboxItem>
             <DropdownMenuItem>
-              <ClockCounterClockwise className="mr-2 h-4 w-4" />
+              <ClockCounterClockwise size={22} className="mr-2" />
               Histórico da página
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -223,7 +223,7 @@ export function DocumentHeaderMenu({
               onClick={handleMoveToTrash}
               disabled={isMovingToTrash}
             >
-              <Trash className="mr-2 h-4 w-4" weight="fill" />
+              <Trash size={22} className="mr-2" weight="fill" />
               {isMovingToTrash ? 'Movendo...' : 'Mover para a lixeira'}
             </DropdownMenuItem>
             <DropdownMenuSeparator />

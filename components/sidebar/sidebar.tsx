@@ -17,11 +17,23 @@ import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-keys'
 import { useToast } from '@/components/ui/use-toast'
 import { DocumentTree } from '@/components/tree/document-tree'
+import { cn } from '@/lib/utils'
 
-export function Sidebar() {
+const navItem =
+  'w-full justify-start text-sm gap-2 h-8 transition-smooth text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:translate-x-0.5'
+const navItemActive = 'bg-muted/80 text-foreground border-l-2 border-primary font-medium'
+
+interface SidebarProps {
+  workspaceId?: string
+  hasDocument?: boolean
+}
+
+export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: SidebarProps) {
   const { data: session } = useSession()
   const { currentWorkspace } = useWorkspaceStore()
   const router = useRouter()
+  const workspaceId = workspaceIdProp ?? currentWorkspace?.id
+  const isOverview = !!workspaceId && !hasDocument
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [isCreatingPage, setIsCreatingPage] = useState(false)
@@ -63,20 +75,17 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-sm animate-fade-in">
-      {/* Navigation */}
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
-          {/* Home */}
           <Button
             variant="ghost"
             className="w-full justify-start font-medium gap-2 h-9 hover:bg-primary/10 hover:text-primary hover:translate-x-0.5 transition-smooth"
             onClick={handleHome}
           >
-            <House className="h-4 w-4" />
+            <House size={22} />
             Início
           </Button>
 
-          {/* Geral Section */}
           {currentWorkspace && (
             <div className="flex flex-col flex-1 min-h-0 pt-4 space-y-4 animate-fade-in-up">
               <div className="flex-shrink-0">
@@ -86,52 +95,45 @@ export function Sidebar() {
                 <div className="mt-1 space-y-0.5">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:translate-x-0.5 transition-smooth"
-                    onClick={handleHome}
+                    className={cn(navItem, isOverview && navItemActive)}
+                    onClick={() => workspaceId && router.push(`/workspace/${workspaceId}`)}
                   >
-                    <House className="h-3.5 w-3.5" />
-                    Visão Geral
+                    <House size={22} />
+                    Visão geral
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:translate-x-0.5 transition-smooth"
-                    onClick={handleSearch}
-                  >
-                    <MagnifyingGlass className="h-3.5 w-3.5" />
+                  <Button variant="ghost" className={navItem} onClick={handleSearch}>
+                    <MagnifyingGlass size={22} />
                     Buscar
                   </Button>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:translate-x-0.5 transition-smooth"
+                    className={navItem}
                     onClick={() => router.push(`/settings/workspace/${currentWorkspace.id}`)}
                   >
-                    <Gear className="h-3.5 w-3.5" />
-                    Configurações do Espaço
+                    <Gear size={22} />
+                    Workspace
                   </Button>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-sm gap-2 h-8 text-muted-foreground hover:text-foreground hover:bg-primary/10 hover:border-l-2 hover:border-primary hover:translate-x-0.5 transition-smooth"
+                    className={navItem}
                     onClick={handleNewPage}
                     disabled={isCreatingPage}
                   >
                     {isCreatingPage ? (
                       <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                     ) : (
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus size={22} />
                     )}
-                    {isCreatingPage ? 'Criando...' : 'Nova Página'}
+                    {isCreatingPage ? 'Criando...' : 'Criar página'}
                   </Button>
                 </div>
               </div>
-
-              {/* Páginas do workspace */}
               <DocumentTree workspaceId={currentWorkspace.id} />
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer */}
       <Separator />
       <div className="p-4 animate-fade-in">
         <div className="mb-2 text-sm font-medium text-foreground">

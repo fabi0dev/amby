@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Sidebar } from '@/components/sidebar/sidebar'
 import { Editor } from '@/components/editor/editor'
+import { WorkspaceOverview } from '@/components/pages/workspace-overview'
 import { useWorkspaceStore } from '@/stores/workspace-store'
 import { useDocumentStore } from '@/stores/document-store'
 import { useWorkspace } from '@/hooks/use-workspace'
@@ -43,13 +44,18 @@ export function WorkspaceLayout({
     }
   }, [workspace, setCurrentWorkspace])
 
+  // Sincronizar store com o documento da URL: ao trocar de página, usar sempre os dados do cache/API
   useEffect(() => {
+    if (!documentId) {
+      setCurrentDocument(null)
+      return
+    }
     if (document) {
       setCurrentDocument(document)
-    } else if (!documentId) {
+    } else {
       setCurrentDocument(null)
     }
-  }, [document, documentId, setCurrentDocument])
+  }, [documentId, document, setCurrentDocument])
 
   if (isLoading) {
     return (
@@ -67,9 +73,9 @@ export function WorkspaceLayout({
 
   return (
     <div className="flex h-full w-full overflow-hidden animate-fade-in">
-      <Sidebar />
+      <Sidebar workspaceId={workspaceId} hasDocument={!!documentId} />
       <div className="flex-1 overflow-hidden flex flex-col min-w-0">
-        <Editor />
+        {documentId ? <Editor /> : <WorkspaceOverview workspaceId={workspaceId} />}
       </div>
       <Toaster />
     </div>

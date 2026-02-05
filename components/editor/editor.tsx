@@ -9,9 +9,12 @@ import TextAlign from '@tiptap/extension-text-align'
 import { TaskList } from '@tiptap/extension-task-list'
 import { TaskItem } from '@tiptap/extension-task-item'
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useDocumentStore } from '@/stores/document-store'
+import { useWorkspaceStore } from '@/stores/workspace-store'
 import { updateDocument } from '@/app/actions/documents'
 import { useDebounce } from '@/hooks/use-debounce'
+import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 import { BlockMenu } from './block-menu'
 import { Toolbar } from './toolbar'
@@ -19,7 +22,10 @@ import { SaveStatus } from './save-status'
 import { DocumentHeaderMenu } from './document-header-menu'
 
 export function Editor() {
+  const queryClient = useQueryClient()
+  const { currentWorkspace } = useWorkspaceStore()
   const { currentDocument, setCurrentDocument, setIsDirty, setIsSaving } = useDocumentStore()
+  const workspaceId = currentWorkspace?.id ?? ''
   const [showBlockMenu, setShowBlockMenu] = useState(false)
   const [isReadOnly, setIsReadOnly] = useState(false)
   const [fullWidth, setFullWidth] = useState(false)
@@ -171,9 +177,15 @@ export function Editor() {
             setIsDirty(false)
             setIsSaving(false)
             setLastSavedContent(newContent)
-            setCurrentDocument({
-              ...currentDocument,
-              content: serializableContent,
+            const updated = { ...currentDocument, content: serializableContent }
+            setCurrentDocument(updated)
+            // Atualizar cache do React Query para refletir ao alternar páginas
+            queryClient.setQueryData(
+              queryKeys.documents.detail(workspaceId, currentDocument.id).queryKey,
+              (old: unknown) => (old ? { ...(old as object), ...updated } : updated)
+            )
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.documents.tree(workspaceId).queryKey,
             })
           }
         } catch (error) {
@@ -225,6 +237,16 @@ export function Editor() {
                   })
                   if (result.data && !result.error) {
                     setIsDirty(false)
+                    const updated = { ...currentDocument, title: result.data.title }
+                    setCurrentDocument(updated)
+                    // Atualizar cache do React Query para refletir ao alternar páginas
+                    queryClient.setQueryData(
+                      queryKeys.documents.detail(workspaceId, currentDocument.id).queryKey,
+                      (old: unknown) => (old ? { ...(old as object), ...updated } : updated)
+                    )
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+                    })
                   }
                 } catch (err) {
                   console.error('Erro ao salvar título:', err)

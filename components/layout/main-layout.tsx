@@ -73,7 +73,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 group cursor-pointer transition-smooth" onClick={() => router.push('/home')}>
             <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 group-hover:scale-105 transition-smooth">
-              <FileText className="h-5 w-5 text-primary" weight="bold" />
+              <FileText size={22} className="text-primary" weight="bold" />
             </div>
             <span className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Amby
@@ -84,7 +84,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         {/* Center: Search */}
         <div className="flex-1 max-w-xl mx-8">
           <div className="relative group">
-            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-smooth" />
+            <MagnifyingGlass size={22} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-smooth" />
             <Input
               type="text"
               placeholder="Buscar... ⌘K"
@@ -101,14 +101,14 @@ export function MainLayout({ children }: MainLayoutProps) {
             size="icon"
             className="h-9 w-9 hover:bg-primary/10 hover:text-primary hover:scale-105 transition-smooth"
           >
-            <Question className="h-4 w-4" />
+            <Question size={22} />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className="h-9 w-9 hover:bg-primary/10 hover:text-primary hover:scale-105 transition-smooth relative"
           >
-            <Bell className="h-4 w-4" />
+            <Bell size={22} />
             <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full animate-pulse"></span>
           </Button>
           <div className="relative" ref={userMenuRef}>
@@ -118,7 +118,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               className="h-9 w-9 hover:bg-primary/10 hover:text-primary hover:scale-105 transition-smooth"
               onClick={() => setIsUserMenuOpen((open) => !open)}
             >
-              <User className="h-4 w-4" />
+              <User size={22} />
             </Button>
 
             {isUserMenuOpen && (
@@ -137,8 +137,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                     }
                   }}
                 >
-                  <Gear className="h-4 w-4" />
-                  <span>Configurações do workspace</span>
+                  <Gear size={22} />
+                  <span>Configurar workspace</span>
                 </button>
                 <button
                   className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
@@ -149,7 +149,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     }
                   }}
                 >
-                  <Users className="h-4 w-4" />
+                  <Users size={22} />
                   <span>Gerenciar membros</span>
                 </button>
 
@@ -183,7 +183,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     router.push('/settings/user')
                   }}
                 >
-                  <User className="h-4 w-4" />
+                  <User size={22} />
                   <span>Meu perfil</span>
                 </button>
                 <button
@@ -193,7 +193,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     router.push('/settings/preferences')
                   }}
                 >
-                  <Palette className="h-4 w-4" />
+                  <Palette size={22} />
                   <span>Minhas preferências</span>
                 </button>
 
@@ -204,10 +204,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                     onClick={() => setIsThemeMenuOpen((open) => !open)}
                   >
                     <span className="flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
+                      <Palette size={22} />
                       <span>Tema</span>
                     </span>
-                    <CaretRight className="h-4 w-4" />
+                    <CaretRight size={22} />
                   </button>
 
                   {isThemeMenuOpen && (
@@ -224,16 +224,17 @@ export function MainLayout({ children }: MainLayoutProps) {
                             setIsUserMenuOpen(false)
                           }}
                           className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${isCurrentTheme('light')
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-muted-foreground hover:bg-accent/40'
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground hover:bg-accent/40'
                             }`}
                         >
                           <span className="flex items-center gap-2">
-                            <Sun className="h-4 w-4" />
+                            <Sun size={22} />
                             <span>Claro</span>
                           </span>
                           <Check
-                            className={`h-4 w-4 ${isCurrentTheme('light') ? 'opacity-100' : 'opacity-0'
+                            size={22}
+                            className={`${isCurrentTheme('light') ? 'opacity-100' : 'opacity-0'
                               }`}
                           />
                         </button>
@@ -245,16 +246,17 @@ export function MainLayout({ children }: MainLayoutProps) {
                             setIsUserMenuOpen(false)
                           }}
                           className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${isCurrentTheme('dark')
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-muted-foreground hover:bg-accent/40'
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground hover:bg-accent/40'
                             }`}
                         >
                           <span className="flex items-center gap-2">
-                            <Moon className="h-4 w-4" />
+                            <Moon size={22} />
                             <span>Escuro</span>
                           </span>
                           <Check
-                            className={`h-4 w-4 ${isCurrentTheme('dark') ? 'opacity-100' : 'opacity-0'
+                            size={22}
+                            className={`${isCurrentTheme('dark') ? 'opacity-100' : 'opacity-0'
                               }`}
                           />
                         </button>
@@ -266,16 +268,17 @@ export function MainLayout({ children }: MainLayoutProps) {
                             setIsUserMenuOpen(false)
                           }}
                           className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${isCurrentTheme('system')
-                              ? 'bg-accent text-accent-foreground'
-                              : 'text-muted-foreground hover:bg-accent/40'
+                            ? 'bg-accent text-accent-foreground'
+                            : 'text-muted-foreground hover:bg-accent/40'
                             }`}
                         >
                           <span className="flex items-center gap-2">
-                            <Desktop className="h-4 w-4" />
+                            <Desktop size={22} />
                             <span>Sistema</span>
                           </span>
                           <Check
-                            className={`h-4 w-4 ${isCurrentTheme('system') ? 'opacity-100' : 'opacity-0'
+                            size={22}
+                            className={`${isCurrentTheme('system') ? 'opacity-100' : 'opacity-0'
                               }`}
                           />
                         </button>
@@ -293,7 +296,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                     signOut()
                   }}
                 >
-                  <SignOut className="h-4 w-4" />
+                  <SignOut size={22} />
                   <span>Sair</span>
                 </button>
               </div>
@@ -302,8 +305,8 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden bg-gradient-to-br from-background via-background to-muted/20 animate-fade-in">
+      {/* Main Content - scroll na página toda */}
+      <div className="flex flex-1 min-h-0 overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20 animate-fade-in">
         {children}
       </div>
       <Toaster />

@@ -91,7 +91,7 @@ export function HomePage({
           <div className="mb-12 text-center animate-fade-in-up">
             <div className="mb-4 flex justify-center">
               <div className="rounded-full bg-primary/10 p-4 transition-smooth hover:scale-110 hover:bg-primary/20">
-                <Star className="h-8 w-8 text-primary" weight="fill" />
+                <Star size={22} className="text-primary" weight="fill" />
               </div>
             </div>
             <h1 className="mb-2 text-4xl font-bold">Bem-vindo ao Amby</h1>
@@ -112,13 +112,13 @@ export function HomePage({
                   </>
                 ) : (
                   <>
-                    <Plus className="h-5 w-5" />
+                    <Plus size={22} />
                     Novo Documento
                   </>
                 )}
               </Button>
               <Button variant="outline" size="lg" className="gap-2 transition-smooth hover:scale-105 active:scale-[0.98]">
-                <MagnifyingGlass className="h-5 w-5" />
+                <MagnifyingGlass size={22} />
                 Ver Todos os Documentos
               </Button>
             </div>
@@ -137,7 +137,7 @@ export function HomePage({
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <h3 className="font-semibold line-clamp-2">{doc.title}</h3>
-                      <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <FileText size={22} className="text-muted-foreground flex-shrink-0" />
                     </div>
                     <p className="mb-3 text-xs text-muted-foreground">
                       {doc.workspace.name}

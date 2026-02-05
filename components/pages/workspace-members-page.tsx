@@ -53,7 +53,7 @@ export function WorkspaceMembersPage({ workspace }: WorkspaceMembersPageProps) {
             onClick={() => router.back()}
             className="h-9 w-9"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={22} />
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Membros do Espaço</h1>
@@ -71,7 +71,7 @@ export function WorkspaceMembersPage({ workspace }: WorkspaceMembersPageProps) {
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-1">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                  <Users size={22} />
                   Membros ({workspace.members.length})
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -79,7 +79,7 @@ export function WorkspaceMembersPage({ workspace }: WorkspaceMembersPageProps) {
                 </p>
               </div>
               <Button variant="outline" size="sm" className="gap-2">
-                <UserPlus className="h-4 w-4" />
+                <UserPlus size={22} />
                 Adicionar membro
               </Button>
             </div>
@@ -110,7 +110,7 @@ export function WorkspaceMembersPage({ workspace }: WorkspaceMembersPageProps) {
                       {getRoleLabel(member.role)}
                     </span>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <UserMinus className="h-4 w-4 text-destructive" />
+                      <UserMinus size={22} className="text-destructive" />
                     </Button>
                   </div>
                 </div>

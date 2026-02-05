@@ -131,7 +131,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
             }`}
           onClick={handleToggleMenu}
         >
-          <DotsThree className="h-3 w-3" weight="bold" />
+          <DotsThree size={22} weight="bold" />
         </Button>
 
         {isMenuOpen && (
@@ -207,7 +207,7 @@ export function DocumentTree({ workspaceId }: { workspaceId: string }) {
           {isCreating ? (
             <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           ) : (
-            <Plus className="h-3.5 w-3.5" />
+            <Plus size={22} />
           )}
         </Button>
       </div>
