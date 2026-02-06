@@ -128,7 +128,7 @@ export function Editor() {
         setIsSaving(false)
       }
     }
-  }, [editor, currentDocument?.id])
+  }, [editor, currentDocument?.id, currentDocument?.content])
 
   // Inicializar quando o documento muda (ex.: troca de página)
   useEffect(() => {

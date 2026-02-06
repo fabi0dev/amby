@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { HomePage } from '@/components/pages/home-page'
+import { SystemOffline } from '@/components/system-status/system-offline'
 
 export default async function HomePageRoute() {
   const session = await getServerSession(authOptions)
@@ -11,57 +12,62 @@ export default async function HomePageRoute() {
     redirect('/login')
   }
 
-  const workspaces = await prisma.workspace.findMany({
-    where: {
-      members: {
-        some: {
-          userId: session.user.id,
-        },
-      },
-    },
-    include: {
-      documents: {
+  try {
+    const [workspaces, recentDocuments] = await Promise.all([
+      prisma.workspace.findMany({
         where: {
+          members: {
+            some: {
+              userId: session.user.id,
+            },
+          },
+        },
+        include: {
+          documents: {
+            where: {
+              deletedAt: null,
+            },
+            orderBy: {
+              updatedAt: 'desc',
+            },
+            take: 5,
+            include: {
+              tree: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      }),
+      prisma.document.findMany({
+        where: {
+          workspace: {
+            members: {
+              some: {
+                userId: session.user.id,
+              },
+            },
+          },
           deletedAt: null,
+        },
+        include: {
+          workspace: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
         orderBy: {
           updatedAt: 'desc',
         },
-        take: 5,
-        include: {
-          tree: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
-  })
+        take: 6,
+      }),
+    ])
 
-  const recentDocuments = await prisma.document.findMany({
-    where: {
-      workspace: {
-        members: {
-          some: {
-            userId: session.user.id,
-          },
-        },
-      },
-      deletedAt: null,
-    },
-    include: {
-      workspace: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    take: 6,
-  })
-
-  return <HomePage workspaces={workspaces} recentDocuments={recentDocuments} />
+    return <HomePage workspaces={workspaces} recentDocuments={recentDocuments} />
+  } catch (error) {
+    return <SystemOffline />
+  }
 }

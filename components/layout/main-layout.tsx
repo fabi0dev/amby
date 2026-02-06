@@ -5,13 +5,15 @@ import { useRouter } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { useWorkspaceStore } from '@/stores/workspace-store'
-import { Input } from '@/components/ui/input'
 import { useUIStore } from '@/stores/ui-store'
 import { Toaster } from '@/components/ui/toaster'
+import { SearchModal } from '@/components/search/search-modal'
+import { ChatWidget } from '@/components/chat/chat-widget'
 import {
   Bell,
   CaretRight,
   Check,
+  ChatCircleDots,
   Desktop,
   FileText,
   Gear,
@@ -23,6 +25,7 @@ import {
   Sun,
   User,
   Users,
+  X,
 } from '@phosphor-icons/react'
 
 interface MainLayoutProps {
@@ -36,14 +39,20 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { theme, setTheme } = useUIStore()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement | null>(null)
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault()
-      // TODO: implementar abertura do modal/busca global
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen((open) => !open)
+      }
     }
-  }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const isCurrentTheme = (value: 'light' | 'dark' | 'system') => theme === value
 
@@ -66,7 +75,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [])
 
   return (
-    <div className="flex h-screen flex-col bg-background" onKeyDown={handleKeyDown}>
+    <div className="flex h-screen flex-col bg-background">
       {/* Top Bar */}
       <div className="flex items-center justify-between border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm px-6 py-3 z-10 animate-fade-in-down">
         {/* Left: Logo */}
@@ -83,15 +92,17 @@ export function MainLayout({ children }: MainLayoutProps) {
 
         {/* Center: Search */}
         <div className="flex-1 max-w-xl mx-8">
-          <div className="relative group">
-            <MagnifyingGlass size={22} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-smooth" />
-            <Input
-              type="text"
-              placeholder="Buscar... ⌘K"
-              className="w-full pl-9 bg-muted/60 border-muted hover:bg-muted/80 focus:bg-background focus:border-primary/50 transition-smooth shadow-sm"
-            // TODO: integrar com componente de busca global
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center gap-2 rounded-md border border-input bg-muted/60 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-smooth shadow-sm"
+          >
+            <MagnifyingGlass size={22} />
+            <span>Buscar... </span>
+            <kbd className="ml-auto hidden sm:inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px]">
+              ⌘K
+            </kbd>
+          </button>
         </div>
 
         {/* Right: Actions */}
@@ -309,6 +320,25 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="flex flex-1 min-h-0 overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20 animate-fade-in">
         {children}
       </div>
+
+      {/* Busca global (Ctrl+K) */}
+      <SearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+
+      {/* Chat IA */}
+      <div className="fixed bottom-6 right-6 z-30">
+        <Button
+          size="icon"
+          variant="default"
+          className="h-12 w-12 rounded-full shadow-lg hover:scale-105 transition-smooth"
+          onClick={() => setChatOpen(true)}
+          title="Chat com IA"
+        >
+          <ChatCircleDots size={24} weight="duotone" />
+        </Button>
+      </div>
+
+      <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
+
       <Toaster />
     </div>
   )

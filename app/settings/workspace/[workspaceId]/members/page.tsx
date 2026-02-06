@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canManage } from '@/lib/permissions'
 import { MainLayout } from '@/components/layout/main-layout'
 import { WorkspaceMembersPage } from '@/components/pages/workspace-members-page'
 
@@ -38,6 +39,15 @@ export default async function WorkspaceMembersRoute({
           },
         },
       },
+      invites: {
+        where: { expiresAt: { gt: new Date() } },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          invitedBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      },
     },
   })
 
@@ -45,9 +55,16 @@ export default async function WorkspaceMembersRoute({
     redirect('/home')
   }
 
+  const currentMember = workspace.members.find((m) => m.userId === session.user.id)
+  const canManageMembers = currentMember ? canManage(currentMember.role) : false
+
   return (
     <MainLayout>
-      <WorkspaceMembersPage workspace={workspace} />
+      <WorkspaceMembersPage
+        workspace={workspace}
+        currentUserId={session.user.id}
+        canManageMembers={canManageMembers}
+      />
     </MainLayout>
   )
 }

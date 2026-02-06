@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { createDocument } from '@/app/actions/documents'
@@ -44,8 +44,21 @@ export function HomePage({
 }) {
   const router = useRouter()
   const { toast } = useToast()
-  const { currentWorkspace } = useWorkspaceStore()
+  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore()
   const [isCreating, setIsCreating] = useState(false)
+
+  // Define um workspace padrão no store quando estiver na Home
+  useEffect(() => {
+    if (!workspaces.length) return
+    if (!currentWorkspace || !workspaces.some((w) => w.id === currentWorkspace.id)) {
+      // Os tipos podem não bater 100% entre Prisma e o tipo local,
+      // mas para o store basta garantir id e name.
+      setCurrentWorkspace({
+        ...(currentWorkspace as any),
+        ...workspaces[0],
+      } as any)
+    }
+  }, [workspaces, currentWorkspace, setCurrentWorkspace])
 
   const handleNewDocument = async () => {
     const workspaceId = currentWorkspace?.id || workspaces[0]?.id

@@ -336,6 +336,75 @@
   }
 }
 
+/* ========== Auth (login/register) – dark theme e animações ========== */
+@keyframes auth-gradient-shift {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.92; }
+}
+@keyframes auth-glow {
+  0%, 100% { filter: blur(0) brightness(1); }
+  50% { filter: blur(1px) brightness(1.02); }
+}
+@keyframes auth-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.auth-panel-left {
+  transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dark .auth-panel-left {
+  background: linear-gradient(
+    160deg,
+    hsl(var(--primary)) 0%,
+    hsl(217 91% 45%) 45%,
+    hsl(217 70% 28%) 100%
+  );
+  animation: auth-gradient-shift 8s ease-in-out infinite;
+}
+.auth-form-enter {
+  animation: auth-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.auth-form-enter-delay-1 { animation-delay: 0.06s; }
+.auth-form-enter-delay-2 { animation-delay: 0.12s; }
+.auth-form-enter-delay-3 { animation-delay: 0.18s; }
+.auth-form-enter-delay-4 { animation-delay: 0.24s; }
+.auth-form-enter-delay-5 { animation-delay: 0.3s; }
+.auth-form-enter-delay-6 { animation-delay: 0.36s; }
+.auth-form-enter-delay-7 { animation-delay: 0.42s; }
+.auth-form-enter-delay-8 { animation-delay: 0.48s; }
+.auth-form-enter-delay-9 { animation-delay: 0.54s; }
+.auth-panel-right {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.dark .auth-panel-right {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--background)) 0%,
+    hsl(222.2 84% 5.5%) 100%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-panel-left,
+  .auth-form-enter,
+  .auth-form-enter-delay-1,
+  .auth-form-enter-delay-2,
+  .auth-form-enter-delay-3,
+  .auth-form-enter-delay-4,
+  .auth-form-enter-delay-5,
+  .auth-form-enter-delay-6,
+  .auth-form-enter-delay-7,
+  .auth-form-enter-delay-8,
+  .auth-form-enter-delay-9 {
+    animation: none !important;
+  }
+}
+
 /* Redução de movimento para acessibilidade */
 @media (prefers-reduced-motion: reduce) {
   .animate-in,

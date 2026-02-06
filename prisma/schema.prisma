@@ -24,6 +24,12 @@ enum Permission {
   MANAGE
 }
 
+enum ChatMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -34,12 +40,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts         Account[]
-  sessions         Session[]
-  workspaceMembers WorkspaceMember[]
-  documentComments DocumentComment[]
-  documentVersions DocumentVersion[]
-  documentShares   DocumentShare[]
+  accounts          Account[]
+  sessions          Session[]
+  workspaceMembers  WorkspaceMember[]
+  workspaceInvites  WorkspaceInvite[]
+  documentComments  DocumentComment[]
+  documentVersions  DocumentVersion[]
+  documentShares    DocumentShare[]
+  chatSessions      ChatSession[]
+  chatMessages      ChatMessage[]
 
   @@map("users")
 }
@@ -92,8 +101,10 @@ model Workspace {
   updatedAt   DateTime @updatedAt
 
   members     WorkspaceMember[]
-  documents   Document[]
+  invites     WorkspaceInvite[]
+  documents    Document[]
   documentTree DocumentTree[]
+  chatSessions ChatSession[]
 
   @@map("workspaces")
 }
@@ -113,6 +124,24 @@ model WorkspaceMember {
   @@map("workspace_members")
 }
 
+model WorkspaceInvite {
+  id          String   @id @default(cuid())
+  workspaceId String
+  email       String
+  role        Role     @default(VIEWER)
+  token       String   @unique
+  expiresAt  DateTime
+  invitedById String
+  createdAt   DateTime @default(now())
+
+  workspace  Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy  User       @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email])
+  @@index([token])
+  @@map("workspace_invites")
+}
+
 model Document {
   id          String   @id @default(cuid())
   workspaceId String
@@ -130,6 +159,7 @@ model Document {
   comments       DocumentComment[]
   shares         DocumentShare[]
   fullTextSearch DocumentFullText?
+  chatSessions   ChatSession[]
 
   @@unique([workspaceId, slug])
   @@index([workspaceId])
@@ -221,4 +251,41 @@ model DocumentFullText {
   @@index([title])
   @@index([content])
   @@map("document_fulltext")
+}
+
+model ChatSession {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  documentId  String?
+  title       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document  Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, documentId])
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id         String          @id @default(cuid())
+  sessionId  String
+  userId     String?
+  role       ChatMessageRole
+  content    String          @db.Text
+  metadata   Json?
+  createdAt  DateTime        @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@map("chat_messages")
 }
