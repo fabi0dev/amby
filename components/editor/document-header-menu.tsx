@@ -40,17 +40,20 @@ import { useToast } from '@/components/ui/use-toast'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { PageHistoryModal } from './page-history-modal'
+import { AISuggestionsModal } from './ai-suggestions-modal'
 
 export function DocumentHeaderMenu({
   isReadOnly,
   onReadOnlyChange,
   fullWidth,
   onFullWidthChange,
+  onInsertSuggestion,
 }: {
   isReadOnly: boolean
   onReadOnlyChange: (v: boolean) => void
   fullWidth: boolean
   onFullWidthChange: (v: boolean) => void
+  onInsertSuggestion?: (text: string) => void
 }) {
   const { currentDocument } = useDocumentStore()
   const { currentWorkspace } = useWorkspaceStore()
@@ -84,11 +87,17 @@ export function DocumentHeaderMenu({
     }
   }
 
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false)
+
   const handleAISuggestions = () => {
-    toast({
-      title: 'Sugestões de IA',
-      description: 'Em breve você poderá pedir sugestões de melhoria para esta página diretamente pela IA.',
-    })
+    if (onInsertSuggestion) {
+      setIsSuggestionsOpen(true)
+    } else {
+      toast({
+        title: 'Sugestões de IA',
+        description: 'Abra um documento no editor para usar as sugestões de IA.',
+      })
+    }
   }
 
   const handleFullWidthToggle = (checked: boolean) => {
@@ -205,6 +214,16 @@ export function DocumentHeaderMenu({
           onOpenChange={setIsHistoryOpen}
           workspaceId={currentWorkspace.id}
           documentId={currentDocument.id}
+        />
+      )}
+      {currentDocument && onInsertSuggestion && (
+        <AISuggestionsModal
+          open={isSuggestionsOpen}
+          onOpenChange={setIsSuggestionsOpen}
+          workspaceDescription={currentWorkspace?.description}
+          documentTitle={currentDocument.title}
+          documentContent={currentDocument.content}
+          onInsertSuggestion={onInsertSuggestion}
         />
       )}
     </TooltipProvider>

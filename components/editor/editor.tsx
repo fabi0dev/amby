@@ -241,6 +241,22 @@ export function Editor() {
           onReadOnlyChange={setIsReadOnly}
           fullWidth={fullWidth}
           onFullWidthChange={setFullWidth}
+          onInsertSuggestion={(text) => {
+            if (!editor) return
+            editor
+              .chain()
+              .focus(undefined, { scrollIntoView: true })
+              .insertContent({
+                type: 'paragraph',
+                content: [
+                  {
+                    type: 'text',
+                    text,
+                  },
+                ],
+              })
+              .run()
+          }}
         />
         <SaveStatus />
       </div>
