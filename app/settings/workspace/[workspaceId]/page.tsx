@@ -1,15 +1,15 @@
-import { redirect } from 'next/navigation'
-import { getRequiredSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { MainLayout } from '@/components/layout/main-layout'
-import { WorkspaceSettingsPage } from '@/components/pages/workspace-settings-page'
+import { redirect } from 'next/navigation';
+import { getRequiredSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { MainLayout } from '@/components/layout/main-layout';
+import { WorkspaceSettingsPage } from '@/components/pages/workspace-settings-page';
 
 export default async function WorkspaceSettingsRoute({
   params,
 }: {
-  params: { workspaceId: string }
+  params: { workspaceId: string };
 }) {
-  const session = await getRequiredSession()
+  const session = await getRequiredSession();
 
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -34,15 +34,15 @@ export default async function WorkspaceSettingsRoute({
         },
       },
     },
-  })
+  });
 
   if (!workspace) {
-    redirect('/home')
+    redirect('/home');
   }
 
   return (
     <MainLayout>
       <WorkspaceSettingsPage workspace={workspace} />
     </MainLayout>
-  )
+  );
 }

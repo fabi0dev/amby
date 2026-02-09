@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { ChatCircleDots } from '@phosphor-icons/react'
-import { Button } from '@/components/ui/button'
-import { ChatWidget } from './chat-widget'
+import { useState } from 'react';
+import { ChatCircleDots } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import { ChatWidget } from './chat-widget';
 
 export function ChatDock() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   return (
     <>
@@ -28,6 +28,5 @@ export function ChatDock() {
 
       <ChatWidget open={open} onOpenChange={setOpen} />
     </>
-  )
+  );
 }
-

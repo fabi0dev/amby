@@ -1,4 +1,4 @@
-import { createQueryKeys } from '@lukemorales/query-key-factory'
+import { createQueryKeys } from '@lukemorales/query-key-factory';
 
 export const documents = createQueryKeys('documents', {
   all: (workspaceId: string) => ({
@@ -25,4 +25,4 @@ export const documents = createQueryKeys('documents', {
     queryKey: [workspaceId, 'search', query],
     queryFn: null,
   }),
-})
+});

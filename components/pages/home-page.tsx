@@ -1,38 +1,38 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { createDocument } from '@/app/actions/documents'
-import { useWorkspaceStore } from '@/stores/workspace-store'
-import { useUIStore } from '@/stores/ui-store'
-import { useToast } from '@/components/ui/use-toast'
-import { Plus, MagnifyingGlass, FileText, UsersThree, Clock } from '@phosphor-icons/react'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog'
-import { formatRecentDate } from '@/lib/utils'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { createDocument } from '@/app/actions/documents';
+import { useWorkspaceStore } from '@/stores/workspace-store';
+import { useUIStore } from '@/stores/ui-store';
+import { useToast } from '@/components/ui/use-toast';
+import { Plus, MagnifyingGlass, FileText, UsersThree, Clock } from '@phosphor-icons/react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
+import { formatRecentDate } from '@/lib/utils';
 
 interface Workspace {
-  id: string
-  name: string
+  id: string;
+  name: string;
   documents: Array<{
-    id: string
-    title: string
-    slug: string
-    updatedAt: Date
-  }>
+    id: string;
+    title: string;
+    slug: string;
+    updatedAt: Date;
+  }>;
 }
 
 interface RecentDocument {
-  id: string
-  title: string
-  slug: string
-  updatedAt: Date
+  id: string;
+  title: string;
+  slug: string;
+  updatedAt: Date;
   workspace: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+  };
 }
 
 export function HomePage({
@@ -40,72 +40,72 @@ export function HomePage({
   workspaces,
   recentDocuments,
 }: {
-  userName: string
-  workspaces: Workspace[]
-  recentDocuments: RecentDocument[]
+  userName: string;
+  workspaces: Workspace[];
+  recentDocuments: RecentDocument[];
 }) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const setSearchOpen = useUIStore((s) => s.setSearchOpen)
-  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore()
-  const [isCreating, setIsCreating] = useState(false)
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
+  const router = useRouter();
+  const { toast } = useToast();
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
+  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore();
+  const [isCreating, setIsCreating] = useState(false);
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
 
   // Define um workspace padrão no store quando estiver na Home
   useEffect(() => {
-    if (!workspaces.length) return
+    if (!workspaces.length) return;
     if (!currentWorkspace || !workspaces.some((w) => w.id === currentWorkspace.id)) {
       // Os tipos podem não bater 100% entre Prisma e o tipo local,
       // mas para o store basta garantir id e name.
       setCurrentWorkspace({
         ...(currentWorkspace as any),
         ...workspaces[0],
-      } as any)
+      } as any);
     }
-  }, [workspaces, currentWorkspace, setCurrentWorkspace])
+  }, [workspaces, currentWorkspace, setCurrentWorkspace]);
 
   const handleNewPage = async () => {
-    const workspaceId = currentWorkspace?.id || workspaces[0]?.id
-    if (!workspaceId) return
-    setIsCreating(true)
+    const workspaceId = currentWorkspace?.id || workspaces[0]?.id;
+    if (!workspaceId) return;
+    setIsCreating(true);
     try {
       const result = await createDocument({
         workspaceId,
         title: 'Nova Página',
-      })
+      });
       if (result.data) {
-        toast({ title: 'Página criada' })
-        router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`)
+        toast({ title: 'Página criada' });
+        router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`);
       } else {
         toast({
           title: 'Erro',
           description: result.error ?? 'Não foi possível criar a página',
           variant: 'destructive',
-        })
+        });
       }
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleViewDocument = (workspaceId: string, documentId: string) => {
-    router.push(`/workspace/${workspaceId}/${documentId}`)
-  }
+    router.push(`/workspace/${workspaceId}/${documentId}`);
+  };
 
-  const MAX_RECENT = 5
+  const MAX_RECENT = 5;
 
-  const visibleRecentDocuments = recentDocuments.slice(0, MAX_RECENT)
+  const visibleRecentDocuments = recentDocuments.slice(0, MAX_RECENT);
 
   const getWorkspaceInitials = (name: string) => {
-    if (!name) return '?'
-    const parts = name.trim().split(/\s+/)
-    if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
-    return (parts[0]![0] + parts[1]![0]).toUpperCase()
-  }
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+    return (parts[0]![0] + parts[1]![0]).toUpperCase();
+  };
 
   const getWorkspaceFromDocument = (doc: RecentDocument) => {
-    return workspaces.find((w) => w.id === doc.workspace.id)
-  }
+    return workspaces.find((w) => w.id === doc.workspace.id);
+  };
 
   return (
     <div className="flex h-full w-full flex-col bg-background overflow-hidden">
@@ -115,9 +115,7 @@ export function HomePage({
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Início
             </p>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Olá, {userName}
-            </h1>
+            <h1 className="text-2xl font-semibold text-foreground">Olá, {userName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Acesse rapidamente seus espaços e páginas recentes.
             </p>
@@ -140,11 +138,7 @@ export function HomePage({
             {workspaces.length === 0 ? (
               <div className="rounded-xl border border-dashed px-6 py-8 text-center text-sm text-muted-foreground space-y-3 bg-card/60">
                 <p>Você ainda não participa de nenhum espaço.</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsCreateWorkspaceOpen(true)}
-                >
+                <Button size="sm" variant="outline" onClick={() => setIsCreateWorkspaceOpen(true)}>
                   <Plus size={16} className="mr-1" />
                   Criar primeiro workspace
                 </Button>
@@ -167,8 +161,7 @@ export function HomePage({
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {workspace.documents.length} página
-                          {workspace.documents.length !== 1 ? 's' : ''}{' '}
-                          • espaço
+                          {workspace.documents.length !== 1 ? 's' : ''} • espaço
                         </p>
                       </div>
                     </div>
@@ -198,7 +191,7 @@ export function HomePage({
               ) : (
                 <ul className="space-y-0 divide-y divide-border/60">
                   {visibleRecentDocuments.map((doc) => {
-                    const workspace = getWorkspaceFromDocument(doc)
+                    const workspace = getWorkspaceFromDocument(doc);
                     return (
                       <li key={doc.id}>
                         <button
@@ -227,7 +220,7 @@ export function HomePage({
                           </span>
                         </button>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               )}
@@ -243,10 +236,10 @@ export function HomePage({
             ...(currentWorkspace as any),
             id: workspace.id,
             name: workspace.name,
-          } as any)
-          router.push(`/workspace/${workspace.id}`)
+          } as any);
+          router.push(`/workspace/${workspace.id}`);
         }}
       />
     </div>
-  )
+  );
 }

@@ -1,62 +1,59 @@
-'use client'
+'use client';
 
-import { loginSchema } from '@/lib/validations/auth'
-import { signIn } from 'next-auth/react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState, Suspense } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AuthAlert, AuthPanelLeft, AuthFormWrapper } from '@/components/auth'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { AUTH } from '@/lib/config'
+import { loginSchema } from '@/lib/validations/auth';
+import { signIn } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AuthAlert, AuthPanelLeft, AuthFormWrapper } from '@/components/auth';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { AUTH } from '@/lib/config';
 
 function LoginForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const fromRegister = searchParams.get('registered') === '1'
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromRegister = searchParams.get('registered') === '1';
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
-    const parsed = loginSchema.safeParse({ email, password })
+    const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.errors[0].message)
-      return
+      setError(parsed.error.errors[0].message);
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       const result = await signIn('credentials', {
         email: parsed.data.email,
         password: parsed.data.password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        setError('E-mail ou senha inválidos. Tente novamente.')
+        setError('E-mail ou senha inválidos. Tente novamente.');
       } else {
-        router.push('/home')
+        router.push('/home');
       }
     } catch {
-      setError('Erro ao fazer login. Tente novamente.')
+      setError('Erro ao fazer login. Tente novamente.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors duration-300 dark:bg-[hsl(222.2,84%,4.5%)]">
-      <AuthPanelLeft
-        title={AUTH.panel.login.title}
-        description={AUTH.panel.login.description}
-      />
+    <div className="flex min-h-screen bg-background transition-colors duration-300 dark:bg-background">
+      <AuthPanelLeft title={AUTH.panel.login.title} description={AUTH.panel.login.description} />
 
       <AuthFormWrapper
         title="Entrar"
@@ -130,17 +127,19 @@ function LoginForm() {
         </form>
       </AuthFormWrapper>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen bg-background items-center justify-center">
-        <LoadingSpinner size="md" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen bg-background items-center justify-center">
+          <LoadingSpinner size="md" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
-  )
+  );
 }

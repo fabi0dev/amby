@@ -1,16 +1,16 @@
-import { redirect } from 'next/navigation'
-import { getRequiredSession } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { canManage } from '@/lib/permissions'
-import { MainLayout } from '@/components/layout/main-layout'
-import { WorkspaceMembersPage } from '@/components/pages/workspace-members-page'
+import { redirect } from 'next/navigation';
+import { getRequiredSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { canManage } from '@/lib/permissions';
+import { MainLayout } from '@/components/layout/main-layout';
+import { WorkspaceMembersPage } from '@/components/pages/workspace-members-page';
 
 export default async function WorkspaceMembersRoute({
   params,
 }: {
-  params: { workspaceId: string }
+  params: { workspaceId: string };
 }) {
-  const session = await getRequiredSession()
+  const session = await getRequiredSession();
 
   const workspace = await prisma.workspace.findFirst({
     where: {
@@ -44,14 +44,14 @@ export default async function WorkspaceMembersRoute({
         },
       },
     },
-  })
+  });
 
   if (!workspace) {
-    redirect('/home')
+    redirect('/home');
   }
 
-  const currentMember = workspace.members.find((m) => m.userId === session.user.id)
-  const canManageMembers = currentMember ? canManage(currentMember.role) : false
+  const currentMember = workspace.members.find((m) => m.userId === session.user.id);
+  const canManageMembers = currentMember ? canManage(currentMember.role) : false;
 
   return (
     <MainLayout>
@@ -61,6 +61,5 @@ export default async function WorkspaceMembersRoute({
         canManageMembers={canManageMembers}
       />
     </MainLayout>
-  )
+  );
 }
-

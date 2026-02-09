@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
-import { X, ChatCircle, SpinnerGap } from '@phosphor-icons/react'
-import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
-import { getMarkdownFromContent } from '@/lib/document-content'
-import { cn } from '@/lib/utils'
+import { useEffect, useState } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { X, ChatCircle, SpinnerGap } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
+import { getMarkdownFromContent } from '@/lib/document-content';
+import { cn } from '@/lib/utils';
 
 export type AISuggestionsModalProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  workspaceDescription: string | null | undefined
-  documentTitle: string | null | undefined
-  documentContent: unknown
-  onInsertSuggestion: (text: string) => void
-}
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  workspaceDescription: string | null | undefined;
+  documentTitle: string | null | undefined;
+  documentContent: unknown;
+  onInsertSuggestion: (text: string) => void;
+};
 
 export function AISuggestionsModal({
   open,
@@ -25,23 +25,23 @@ export function AISuggestionsModal({
   documentContent,
   onInsertSuggestion,
 }: AISuggestionsModalProps) {
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { toast } = useToast()
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!open) {
-      setSuggestions([])
-      setError(null)
-      return
+      setSuggestions([]);
+      setError(null);
+      return;
     }
-    let cancelled = false
-    setError(null)
-    setIsLoading(true)
-    setSuggestions([])
+    let cancelled = false;
+    setError(null);
+    setIsLoading(true);
+    setSuggestions([]);
 
-    const docMarkdown = documentContent ? getMarkdownFromContent(documentContent) : ''
+    const docMarkdown = documentContent ? getMarkdownFromContent(documentContent) : '';
 
     fetch('/api/suggestions', {
       method: 'POST',
@@ -53,33 +53,33 @@ export function AISuggestionsModal({
       }),
     })
       .then(async (res) => {
-        const data = await res.json().catch(() => ({}))
+        const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(data.message || data.error || 'Erro ao carregar sugestões')
+          throw new Error(data.message || data.error || 'Erro ao carregar sugestões');
         }
-        if (cancelled) return
-        setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+        if (cancelled) return;
+        setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
       })
       .catch((err) => {
-        if (cancelled) return
-        const message = err instanceof Error ? err.message : 'Erro ao carregar sugestões'
-        setError(message)
-        setSuggestions([])
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : 'Erro ao carregar sugestões';
+        setError(message);
+        setSuggestions([]);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+        if (!cancelled) setIsLoading(false);
+      });
 
     return () => {
-      cancelled = true
-    }
-  }, [open, workspaceDescription, documentTitle, documentContent])
+      cancelled = true;
+    };
+  }, [open, workspaceDescription, documentTitle, documentContent]);
 
   const handleSelect = (text: string) => {
-    onInsertSuggestion(text)
-    onOpenChange(false)
-    toast({ title: 'Sugestão inserida', description: 'A frase foi adicionada ao documento.' })
-  }
+    onInsertSuggestion(text);
+    onOpenChange(false);
+    toast({ title: 'Sugestão inserida', description: 'A frase foi adicionada ao documento.' });
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -107,7 +107,8 @@ export function AISuggestionsModal({
 
           <div className="max-h-[60vh] overflow-y-auto px-5 pb-5 pt-3 space-y-3">
             <p className="text-xs text-muted-foreground">
-              Frases geradas com base no workspace e no documento atual. Clique em uma opção para inseri-la diretamente na posição atual do cursor.
+              Frases geradas com base no workspace e no documento atual. Clique em uma opção para
+              inseri-la diretamente na posição atual do cursor.
             </p>
 
             {isLoading && (
@@ -125,7 +126,8 @@ export function AISuggestionsModal({
 
             {!isLoading && !error && suggestions.length === 0 && (
               <p className="py-4 text-center text-sm text-muted-foreground">
-                Nenhuma sugestão disponível. Verifique se a GROQ_API_KEY está configurada no servidor.
+                Nenhuma sugestão disponível. Verifique se a GROQ_API_KEY está configurada no
+                servidor.
               </p>
             )}
 
@@ -137,7 +139,7 @@ export function AISuggestionsModal({
                       variant="ghost"
                       className={cn(
                         'h-auto w-full justify-start whitespace-normal rounded-xl border border-border/40 bg-transparent py-3 px-3 text-left text-sm font-normal transition-colors',
-                        'focus-visible:bg-primary focus-visible:text-primary-foreground focus-visible:border-primary'
+                        'focus-visible:bg-primary focus-visible:text-primary-foreground focus-visible:border-primary',
                       )}
                       onClick={() => handleSelect(text)}
                     >
@@ -151,5 +153,5 @@ export function AISuggestionsModal({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }

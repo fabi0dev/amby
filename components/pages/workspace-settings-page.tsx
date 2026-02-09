@@ -1,94 +1,94 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react'
-import { updateWorkspace } from '@/app/actions/workspace'
-import { useToast } from '@/components/ui/use-toast'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { SettingsSectionCard } from '@/components/ui/settings-section-card'
-import { Trash } from '@phosphor-icons/react'
-import { Role } from '@prisma/client'
-import { PageHeader } from '@/components/layout/page-header'
-import { useRouter } from 'next/navigation'
-import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog'
+import { useMemo, useState } from 'react';
+import { updateWorkspace } from '@/app/actions/workspace';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { SettingsSectionCard } from '@/components/ui/settings-section-card';
+import { Trash } from '@phosphor-icons/react';
+import { Role } from '@prisma/client';
+import { PageHeader } from '@/components/layout/page-header';
+import { useRouter } from 'next/navigation';
+import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
 
 interface WorkspaceSettingsPageProps {
   workspace: {
-    id: string
-    name: string
-    slug: string
-    description: string | null
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
     members: Array<{
-      id: string
-      role: Role
+      id: string;
+      role: Role;
       user: {
-        id: string
-        name: string | null
-        email: string
-        image: string | null
-      }
-    }>
-  }
+        id: string;
+        name: string | null;
+        email: string;
+        image: string | null;
+      };
+    }>;
+  };
 }
 
 export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps) {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
-  const [name, setName] = useState(workspace.name)
-  const [description, setDescription] = useState(workspace.description || '')
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
+  const [name, setName] = useState(workspace.name);
+  const [description, setDescription] = useState(workspace.description || '');
 
   const workspaceInitials = useMemo(() => {
-    const trimmed = workspace.name.trim()
-    if (!trimmed) return 'WS'
-    const parts = trimmed.split(' ')
+    const trimmed = workspace.name.trim();
+    if (!trimmed) return 'WS';
+    const parts = trimmed.split(' ');
     if (parts.length === 1) {
-      return parts[0].slice(0, 2).toUpperCase()
+      return parts[0].slice(0, 2).toUpperCase();
     }
-    return (parts[0][0] + parts[1][0]).toUpperCase()
-  }, [workspace.name])
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }, [workspace.name]);
 
   const hostname = useMemo(() => {
-    return `${workspace.slug}.amby.com`
-  }, [workspace.slug])
+    return `${workspace.slug}.amby.com`;
+  }, [workspace.slug]);
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const result = await updateWorkspace({
         workspaceId: workspace.id,
         name,
         description: description || null,
-      })
+      });
       if (result.error) {
         toast({
           title: 'Erro',
           description: result.error,
           variant: 'destructive',
-        })
+        });
       } else {
         toast({
           title: 'Sucesso',
           description: 'Workspace atualizado com sucesso',
-        })
+        });
       }
     } catch (error) {
-      console.error('Erro ao atualizar workspace:', error)
+      console.error('Erro ao atualizar workspace:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao atualizar workspace',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getRoleLabel = (role: Role) => {
     const labels = {
@@ -96,25 +96,25 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
       ADMIN: 'Administrador',
       EDITOR: 'Editor',
       VIEWER: 'Visualizador',
-    }
-    return labels[role]
-  }
+    };
+    return labels[role];
+  };
 
   const handleConfirmDeleteWorkspace = async () => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
       // TODO: implementar deleteWorkspace server action
-      await new Promise((r) => setTimeout(r, 800))
+      await new Promise((r) => setTimeout(r, 800));
       toast({
         title: 'Em desenvolvimento',
         description: 'Exclusão de workspace será implementada em breve.',
         variant: 'destructive',
-      })
-      setIsDeleteDialogOpen(false)
+      });
+      setIsDeleteDialogOpen(false);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col w-full min-h-0">
@@ -123,11 +123,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
         description="Gerencie as configurações e membros do workspace"
         showBackButton
         actions={
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsCreateWorkspaceOpen(true)}
-          >
+          <Button size="sm" variant="outline" onClick={() => setIsCreateWorkspaceOpen(true)}>
             Novo workspace
           </Button>
         }
@@ -164,8 +160,6 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                   />
                 </div>
 
-
-
                 <div>
                   <Button onClick={handleSave} disabled={isLoading}>
                     {isLoading ? 'Salvando...' : 'Salvar'}
@@ -179,8 +173,8 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                 <div>
                   <h3 className="font-semibold mb-2">Excluir Workspace</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Ao excluir o workspace, todos os documentos e dados serão permanentemente removidos.
-                    Esta ação não pode ser desfeita.
+                    Ao excluir o workspace, todos os documentos e dados serão permanentemente
+                    removidos. Esta ação não pode ser desfeita.
                   </p>
                   <Button
                     variant="destructive"
@@ -213,10 +207,10 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
           toast({
             title: 'Workspace criado',
             description: 'Você foi redirecionado para o novo espaço.',
-          })
-          router.push(`/workspace/${newWorkspace.id}`)
+          });
+          router.push(`/workspace/${newWorkspace.id}`);
         }}
       />
     </div>
-  )
+  );
 }

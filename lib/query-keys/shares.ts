@@ -1,4 +1,4 @@
-import { createQueryKeys } from '@lukemorales/query-key-factory'
+import { createQueryKeys } from '@lukemorales/query-key-factory';
 
 export const shares = createQueryKeys('shares', {
   all: (documentId: string) => ({
@@ -9,4 +9,4 @@ export const shares = createQueryKeys('shares', {
     queryKey: [token],
     queryFn: null,
   }),
-})
+});

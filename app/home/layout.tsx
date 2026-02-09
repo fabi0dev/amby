@@ -1,9 +1,5 @@
-import { MainLayout } from '@/components/layout/main-layout'
+import { MainLayout } from '@/components/layout/main-layout';
 
-export default function HomeLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return <MainLayout>{children}</MainLayout>
+export default function HomeLayout({ children }: { children: React.ReactNode }) {
+  return <MainLayout>{children}</MainLayout>;
 }

@@ -1,19 +1,19 @@
-import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { WorkspaceLayout } from '@/components/layout/workspace-layout'
-import { MainLayout } from '@/components/layout/main-layout'
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { WorkspaceLayout } from '@/components/layout/workspace-layout';
+import { MainLayout } from '@/components/layout/main-layout';
 
 export default async function DocumentPage({
   params,
 }: {
-  params: { workspaceId: string; documentId: string }
+  params: { workspaceId: string; documentId: string };
 }) {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect('/login');
   }
 
   const document = await prisma.document.findFirst({
@@ -33,15 +33,15 @@ export default async function DocumentPage({
         },
       },
     },
-  })
+  });
 
   if (!document || document.workspace.members.length === 0) {
-    redirect(`/workspace/${params.workspaceId}`)
+    redirect(`/workspace/${params.workspaceId}`);
   }
 
   return (
     <MainLayout>
       <WorkspaceLayout workspaceId={params.workspaceId} documentId={params.documentId} />
     </MainLayout>
-  )
+  );
 }

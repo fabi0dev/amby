@@ -1,72 +1,65 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Role } from '@prisma/client'
-import {
-  Users,
-  ArrowLeft,
-  UserPlus,
-  UserMinus,
-  PaperPlaneTilt,
-  X,
-} from '@phosphor-icons/react'
-import * as Dialog from '@radix-ui/react-dialog'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Role } from '@prisma/client';
+import { Users, ArrowLeft, UserPlus, UserMinus, PaperPlaneTilt, X } from '@phosphor-icons/react';
+import * as Dialog from '@radix-ui/react-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { useToast } from '@/components/ui/use-toast'
+} from '@/components/ui/dropdown-menu';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/use-toast';
 import {
   inviteToWorkspace,
   updateMemberRole,
   removeMember,
   cancelInvite,
-} from '@/app/actions/workspace'
+} from '@/app/actions/workspace';
 
 type Invite = {
-  id: string
-  email: string
-  role: Role
-  expiresAt: string | Date
-  invitedBy: { id: string; name: string | null; email: string }
-}
+  id: string;
+  email: string;
+  role: Role;
+  expiresAt: string | Date;
+  invitedBy: { id: string; name: string | null; email: string };
+};
 
 interface WorkspaceMembersPageProps {
   workspace: {
-    id: string
-    name: string
+    id: string;
+    name: string;
     members: Array<{
-      id: string
-      userId: string
-      role: Role
+      id: string;
+      userId: string;
+      role: Role;
       user: {
-        id: string
-        name: string | null
-        email: string
-        image: string | null
-      }
-    }>
-    invites?: Invite[]
-  }
-  currentUserId: string
-  canManageMembers: boolean
+        id: string;
+        name: string | null;
+        email: string;
+        image: string | null;
+      };
+    }>;
+    invites?: Invite[];
+  };
+  currentUserId: string;
+  canManageMembers: boolean;
 }
 
-type InviteRole = 'ADMIN' | 'EDITOR' | 'VIEWER'
+type InviteRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
 
 const ROLES: { value: InviteRole; label: string }[] = [
   { value: 'ADMIN', label: 'Administrador' },
   { value: 'EDITOR', label: 'Editor' },
   { value: 'VIEWER', label: 'Visualizador' },
-]
+];
 
 const getRoleLabel = (role: Role) => {
   const labels: Record<Role, string> = {
@@ -74,97 +67,99 @@ const getRoleLabel = (role: Role) => {
     ADMIN: 'Administrador',
     EDITOR: 'Editor',
     VIEWER: 'Visualizador',
-  }
-  return labels[role]
-}
+  };
+  return labels[role];
+};
 
 export function WorkspaceMembersPage({
   workspace,
   currentUserId,
   canManageMembers,
 }: WorkspaceMembersPageProps) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [inviteOpen, setInviteOpen] = useState(false)
-  const [inviteEmail, setInviteEmail] = useState('')
-  const [inviteRole, setInviteRole] = useState<InviteRole>('VIEWER')
-  const [inviteLoading, setInviteLoading] = useState(false)
-  const [memberToRemove, setMemberToRemove] = useState<{ userId: string; name: string } | null>(null)
-  const [removeLoading, setRemoveLoading] = useState(false)
-  const [updatingRole, setUpdatingRole] = useState<string | null>(null)
-  const [cancellingInvite, setCancellingInvite] = useState<string | null>(null)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<InviteRole>('VIEWER');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{ userId: string; name: string } | null>(
+    null,
+  );
+  const [removeLoading, setRemoveLoading] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
+  const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
 
-  const invites = workspace.invites ?? []
+  const invites = workspace.invites ?? [];
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inviteEmail.trim()) return
-    setInviteLoading(true)
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+    setInviteLoading(true);
     const result = await inviteToWorkspace({
       workspaceId: workspace.id,
       email: inviteEmail.trim(),
       role: inviteRole,
-    })
-    setInviteLoading(false)
+    });
+    setInviteLoading(false);
     if (result.error) {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' })
-      return
+      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+      return;
     }
-    toast({ title: 'Convite enviado' })
-    setInviteEmail('')
-    setInviteRole('VIEWER')
-    setInviteOpen(false)
-    router.refresh()
-  }
+    toast({ title: 'Convite enviado' });
+    setInviteEmail('');
+    setInviteRole('VIEWER');
+    setInviteOpen(false);
+    router.refresh();
+  };
 
   const handleUpdateRole = async (userId: string, role: InviteRole) => {
-    setUpdatingRole(userId)
-    const result = await updateMemberRole({ workspaceId: workspace.id, userId, role })
-    setUpdatingRole(null)
+    setUpdatingRole(userId);
+    const result = await updateMemberRole({ workspaceId: workspace.id, userId, role });
+    setUpdatingRole(null);
     if (result.error) {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' })
-      return
+      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+      return;
     }
-    toast({ title: 'Papel atualizado' })
-    router.refresh()
-  }
+    toast({ title: 'Papel atualizado' });
+    router.refresh();
+  };
 
   const handleRemove = async () => {
-    if (!memberToRemove) return
-    setRemoveLoading(true)
+    if (!memberToRemove) return;
+    setRemoveLoading(true);
     const result = await removeMember({
       workspaceId: workspace.id,
       userId: memberToRemove.userId,
-    })
-    setRemoveLoading(false)
-    setMemberToRemove(null)
+    });
+    setRemoveLoading(false);
+    setMemberToRemove(null);
     if (result.error) {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' })
-      return
+      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+      return;
     }
-    toast({ title: 'Membro removido' })
-    router.refresh()
-  }
+    toast({ title: 'Membro removido' });
+    router.refresh();
+  };
 
   const handleCancelInvite = async (inviteId: string) => {
-    setCancellingInvite(inviteId)
-    const result = await cancelInvite({ workspaceId: workspace.id, inviteId })
-    setCancellingInvite(null)
+    setCancellingInvite(inviteId);
+    const result = await cancelInvite({ workspaceId: workspace.id, inviteId });
+    setCancellingInvite(null);
     if (result.error) {
-      toast({ title: 'Erro', description: result.error, variant: 'destructive' })
-      return
+      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+      return;
     }
-    toast({ title: 'Convite cancelado' })
-    router.refresh()
-  }
+    toast({ title: 'Convite cancelado' });
+    router.refresh();
+  };
 
   const canChangeMember = (member: { userId: string; role: Role }) => {
-    if (!canManageMembers) return false
-    if (member.role === 'OWNER') return false
-    const current = workspace.members.find((m) => m.userId === currentUserId)
-    if (current?.role === 'ADMIN' && member.role === 'ADMIN') return false
-    return true
-  }
+    if (!canManageMembers) return false;
+    if (member.role === 'OWNER') return false;
+    const current = workspace.members.find((m) => m.userId === currentUserId);
+    if (current?.role === 'ADMIN' && member.role === 'ADMIN') return false;
+    return true;
+  };
 
   return (
     <div className="flex h-full flex-col mx-auto">
@@ -221,9 +216,7 @@ export function WorkspaceMembersPage({
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium">
-                        {member.user.name || member.user.email}
-                      </div>
+                      <div className="font-medium">{member.user.name || member.user.email}</div>
                       <div className="text-sm text-muted-foreground">{member.user.email}</div>
                     </div>
                   </div>
@@ -237,9 +230,7 @@ export function WorkspaceMembersPage({
                             className="gap-1.5 min-w-[120px]"
                             disabled={updatingRole === member.userId}
                           >
-                            {updatingRole === member.userId
-                              ? '...'
-                              : getRoleLabel(member.role)}
+                            {updatingRole === member.userId ? '...' : getRoleLabel(member.role)}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -400,5 +391,5 @@ export function WorkspaceMembersPage({
         onOpenChange={(open) => !open && setMemberToRemove(null)}
       />
     </div>
-  )
+  );
 }

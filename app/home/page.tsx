@@ -1,15 +1,15 @@
-import { redirect } from 'next/navigation'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { HomePage } from '@/components/pages/home-page'
-import { SystemOffline } from '@/components/system-status/system-offline'
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { HomePage } from '@/components/pages/home-page';
+import { SystemOffline } from '@/components/system-status/system-offline';
 
 export default async function HomePageRoute() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect('/login')
+    redirect('/login');
   }
 
   try {
@@ -64,20 +64,14 @@ export default async function HomePageRoute() {
         },
         take: 6,
       }),
-    ])
+    ]);
 
     const userName =
-      session.user.name?.split(' ')[0] ||
-      session.user.email?.split('@')[0] ||
-      'Usuário'
+      session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'Usuário';
     return (
-      <HomePage
-        userName={userName}
-        workspaces={workspaces}
-        recentDocuments={recentDocuments}
-      />
-    )
+      <HomePage userName={userName} workspaces={workspaces} recentDocuments={recentDocuments} />
+    );
   } catch (error) {
-    return <SystemOffline />
+    return <SystemOffline />;
   }
 }

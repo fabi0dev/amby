@@ -1,83 +1,83 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { useRouter } from 'next/navigation'
-import { useWorkspaceStore } from '@/stores/workspace-store'
-import { useUIStore } from '@/stores/ui-store'
-import { House, MagnifyingGlass, Gear, Plus, CaretDown, Check } from '@phosphor-icons/react'
-import { createDocument } from '@/app/actions/documents'
-import { useQueryClient } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-keys'
-import { useToast } from '@/components/ui/use-toast'
-import { DocumentTree } from '@/components/tree/document-tree'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { useWorkspaces } from '@/hooks/use-workspaces'
-import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog'
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { useWorkspaceStore } from '@/stores/workspace-store';
+import { useUIStore } from '@/stores/ui-store';
+import { House, MagnifyingGlass, Gear, Plus, CaretDown, Check } from '@phosphor-icons/react';
+import { createDocument } from '@/app/actions/documents';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query-keys';
+import { useToast } from '@/components/ui/use-toast';
+import { DocumentTree } from '@/components/tree/document-tree';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useWorkspaces } from '@/hooks/use-workspaces';
+import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { SIDEBAR_NAV_ITEM, SIDEBAR_NAV_ITEM_ACTIVE } from './sidebar-constants'
-import { cn } from '@/lib/utils'
+} from '@/components/ui/dropdown-menu';
+import { SIDEBAR_NAV_ITEM, SIDEBAR_NAV_ITEM_ACTIVE } from './sidebar-constants';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
-  workspaceId?: string
-  hasDocument?: boolean
+  workspaceId?: string;
+  hasDocument?: boolean;
 }
 
 export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: SidebarProps) {
-  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore()
-  const setSearchOpen = useUIStore((s) => s.setSearchOpen)
-  const router = useRouter()
-  const workspaceId = workspaceIdProp ?? currentWorkspace?.id
-  const isOverview = !!workspaceId && !hasDocument
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  const [isCreatingPage, setIsCreatingPage] = useState(false)
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false)
-  const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces()
+  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore();
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
+  const router = useRouter();
+  const workspaceId = workspaceIdProp ?? currentWorkspace?.id;
+  const isOverview = !!workspaceId && !hasDocument;
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isCreatingPage, setIsCreatingPage] = useState(false);
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
+  const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
 
   const handleSwitchWorkspace = (id: string, name: string) => {
-    setCurrentWorkspace({ id, name } as typeof currentWorkspace)
-    router.push(`/workspace/${id}`)
-  }
+    setCurrentWorkspace({ id, name } as typeof currentWorkspace);
+    router.push(`/workspace/${id}`);
+  };
 
   const handleSearch = () => {
-    setSearchOpen(true)
-  }
+    setSearchOpen(true);
+  };
 
   const handleNewPage = async () => {
-    if (!currentWorkspace) return
-    setIsCreatingPage(true)
+    if (!currentWorkspace) return;
+    setIsCreatingPage(true);
     try {
       const result = await createDocument({
         workspaceId: currentWorkspace.id,
         title: 'Nova Página',
-      })
+      });
       if (result.data) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.documents.tree(currentWorkspace.id).queryKey,
-        })
-        toast({ title: 'Página criada' })
-        router.push(`/workspace/${currentWorkspace.id}/${result.data.id}?focus=title`)
+        });
+        toast({ title: 'Página criada' });
+        router.push(`/workspace/${currentWorkspace.id}/${result.data.id}?focus=title`);
       } else {
         toast({
           title: 'Erro',
           description: result.error ?? 'Não foi possível criar a página',
           variant: 'destructive',
-        })
+        });
       }
     } finally {
-      setIsCreatingPage(false)
+      setIsCreatingPage(false);
     }
-  }
+  };
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/90 shadow-sm animate-fade-in">
+    <div className="flex h-full w-64 flex-col border-r border-border bg-card animate-fade-in">
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
           {currentWorkspace ? (
@@ -89,8 +89,8 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
                     <button
                       type="button"
                       className={cn(
-                        'flex w-full items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2.5 text-left text-sm font-medium transition-colors',
-                        'hover:bg-muted/60 hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                        'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
                       )}
                       disabled={isLoadingWorkspaces}
                     >
@@ -116,9 +116,7 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
                       </DropdownMenuItem>
                     ))}
                     {workspaces.length === 0 && !isLoadingWorkspaces && (
-                      <DropdownMenuItem disabled>
-                        Nenhum workspace disponível
-                      </DropdownMenuItem>
+                      <DropdownMenuItem disabled>Nenhum workspace disponível</DropdownMenuItem>
                     )}
                     <DropdownMenuItem
                       onClick={() => setIsCreateWorkspaceOpen(true)}
@@ -166,16 +164,15 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
                     onClick={handleNewPage}
                     disabled={isCreatingPage}
                   >
-                    {isCreatingPage ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <Plus size={22} />
-                    )}
+                    {isCreatingPage ? <LoadingSpinner size="sm" /> : <Plus size={22} />}
                     {isCreatingPage ? 'Criando...' : 'Nova página'}
                   </Button>
                 </div>
               </div>
-              <DocumentTree workspaceId={currentWorkspace.id} workspaceName={currentWorkspace.name} />
+              <DocumentTree
+                workspaceId={currentWorkspace.id}
+                workspaceName={currentWorkspace.name}
+              />
             </div>
           ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-4">
@@ -200,11 +197,14 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
         open={isCreateWorkspaceOpen}
         onOpenChange={setIsCreateWorkspaceOpen}
         onCreated={(workspace) => {
-          toast({ title: 'Workspace criado' })
-          setCurrentWorkspace({ id: workspace.id, name: workspace.name } as typeof currentWorkspace)
-          router.push(`/workspace/${workspace.id}`)
+          toast({ title: 'Workspace criado' });
+          setCurrentWorkspace({
+            id: workspace.id,
+            name: workspace.name,
+          } as typeof currentWorkspace);
+          router.push(`/workspace/${workspace.id}`);
         }}
       />
     </div>
-  )
+  );
 }

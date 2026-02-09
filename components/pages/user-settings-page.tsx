@@ -1,59 +1,59 @@
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { User, Envelope, Lock, Trash } from '@phosphor-icons/react'
-import { updateUser, changePassword } from '@/app/actions/user'
-import { useToast } from '@/components/ui/use-toast'
-import { PageHeader } from '@/components/layout/page-header'
-import { SettingsSectionCard } from '@/components/ui/settings-section-card'
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { User, Envelope, Lock, Trash } from '@phosphor-icons/react';
+import { updateUser, changePassword } from '@/app/actions/user';
+import { useToast } from '@/components/ui/use-toast';
+import { PageHeader } from '@/components/layout/page-header';
+import { SettingsSectionCard } from '@/components/ui/settings-section-card';
 
 export function UserSettingsPage() {
-  const { data: session, update } = useSession()
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
-  const [name, setName] = useState(session?.user?.name || '')
-  const [email] = useState(session?.user?.email || '')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const { data: session, update } = useSession();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [name, setName] = useState(session?.user?.name || '');
+  const [email] = useState(session?.user?.email || '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSave = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await updateUser({ name })
+      const result = await updateUser({ name });
       if (result.error) {
         toast({
           title: 'Erro',
           description: result.error,
           variant: 'destructive',
-        })
+        });
       } else {
-        await update()
+        await update();
         toast({
           title: 'Sucesso',
           description: 'Perfil atualizado com sucesso',
-        })
+        });
       }
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error)
+      console.error('Erro ao atualizar perfil:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao atualizar perfil',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -61,58 +61,58 @@ export function UserSettingsPage() {
         title: 'Erro',
         description: 'As senhas não coincidem',
         variant: 'destructive',
-      })
-      return
+      });
+      return;
     }
 
-    setIsChangingPassword(true)
+    setIsChangingPassword(true);
     try {
       const result = await changePassword({
         currentPassword,
         newPassword,
-      })
+      });
       if (result.error) {
         toast({
           title: 'Erro',
           description: result.error,
           variant: 'destructive',
-        })
+        });
       } else {
         toast({
           title: 'Sucesso',
           description: 'Senha alterada com sucesso',
-        })
-        setCurrentPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
+        });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
       }
     } catch (error) {
-      console.error('Erro ao alterar senha:', error)
+      console.error('Erro ao alterar senha:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao alterar senha',
         variant: 'destructive',
-      })
+      });
     } finally {
-      setIsChangingPassword(false)
+      setIsChangingPassword(false);
     }
-  }
+  };
 
   const handleConfirmDeleteAccount = async () => {
-    setIsDeletingAccount(true)
+    setIsDeletingAccount(true);
     try {
       // TODO: implementar deleteUser / excluir conta server action
-      await new Promise((r) => setTimeout(r, 800))
+      await new Promise((r) => setTimeout(r, 800));
       toast({
         title: 'Em desenvolvimento',
         description: 'Exclusão de conta será implementada em breve.',
         variant: 'destructive',
-      })
-      setIsDeleteDialogOpen(false)
+      });
+      setIsDeleteDialogOpen(false);
     } finally {
-      setIsDeletingAccount(false)
+      setIsDeletingAccount(false);
     }
-  }
+  };
 
   return (
     <div className="flex h-full flex-col w-full">
@@ -141,17 +141,13 @@ export function UserSettingsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
-                    <Envelope size={22} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="email"
-                      value={email}
-                      disabled
-                      className="pl-9 bg-muted/50"
+                    <Envelope
+                      size={22}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                     />
+                    <Input id="email" value={email} disabled className="pl-9 bg-muted/50" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    O email não pode ser alterado
-                  </p>
+                  <p className="text-xs text-muted-foreground">O email não pode ser alterado</p>
                 </div>
                 <Button onClick={handleSave} disabled={isLoading}>
                   {isLoading ? 'Salvando...' : 'Salvar Alterações'}
@@ -193,7 +189,11 @@ export function UserSettingsPage() {
                     placeholder="Confirme sua nova senha"
                   />
                 </div>
-                <Button variant="outline" onClick={handleChangePassword} disabled={isChangingPassword}>
+                <Button
+                  variant="outline"
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword}
+                >
                   {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
                 </Button>
               </div>
@@ -206,8 +206,8 @@ export function UserSettingsPage() {
                 <div>
                   <h3 className="font-semibold mb-2">Excluir Conta</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Ao excluir sua conta, todos os seus dados serão permanentemente removidos.
-                    Esta ação não pode ser desfeita.
+                    Ao excluir sua conta, todos os seus dados serão permanentemente removidos. Esta
+                    ação não pode ser desfeita.
                   </p>
                   <Button
                     variant="destructive"
@@ -234,5 +234,5 @@ export function UserSettingsPage() {
         onConfirm={handleConfirmDeleteAccount}
       />
     </div>
-  )
+  );
 }

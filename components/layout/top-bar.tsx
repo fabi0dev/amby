@@ -1,37 +1,33 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { FileText, MagnifyingGlass, Bell, Question, User } from '@phosphor-icons/react'
-import { APP_NAME } from '@/lib/config'
-import { UserMenu } from './user-menu'
-import { useState } from 'react'
-import { useUIStore } from '@/stores/ui-store'
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { FileText, MagnifyingGlass, Bell, Question, User } from '@phosphor-icons/react';
+import { APP_NAME } from '@/lib/config';
+import { UserMenu } from './user-menu';
+import { useState } from 'react';
+import { useUIStore } from '@/stores/ui-store';
 
 interface TopBarProps {
-  onSearchClick?: () => void
-  userMenuOpen: boolean
-  onUserMenuOpenChange: (open: boolean) => void
+  onSearchClick?: () => void;
+  userMenuOpen: boolean;
+  onUserMenuOpenChange: (open: boolean) => void;
 }
 
 /** Abre o modal de busca (store); onSearchClick é fallback para compatibilidade. */
 function useOpenSearch(onSearchClick?: () => void) {
-  const setSearchOpen = useUIStore((s) => s.setSearchOpen)
-  return () => (onSearchClick ? onSearchClick() : setSearchOpen(true))
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
+  return () => (onSearchClick ? onSearchClick() : setSearchOpen(true));
 }
 
 const iconButtonClass =
-  'h-9 w-9 hover:bg-primary/10 hover:text-primary hover:scale-105 transition-smooth'
+  'h-9 w-9 hover:bg-primary/10 hover:text-primary hover:scale-105 transition-smooth';
 
-export function TopBar({
-  onSearchClick,
-  userMenuOpen,
-  onUserMenuOpenChange,
-}: TopBarProps) {
-  const openSearch = useOpenSearch(onSearchClick)
+export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: TopBarProps) {
+  const openSearch = useOpenSearch(onSearchClick);
 
   return (
-    <div className="relative z-20 flex items-center justify-between border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 shadow-sm px-6 py-3 animate-fade-in-down">
+    <div className="relative z-50 flex items-center justify-between border-b border-border bg-card px-6 py-3 animate-fade-in-down">
       <div className="flex items-center gap-3">
         <Link
           href="/home"
@@ -50,11 +46,11 @@ export function TopBar({
         <button
           type="button"
           onClick={openSearch}
-          className="w-full flex items-center gap-2 rounded-md border border-input bg-muted/60 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:border-primary/30 transition-smooth shadow-sm cursor-pointer"
+          className="w-full flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 transition-smooth cursor-pointer"
         >
-          <MagnifyingGlass size={22} />
-          <span>Buscar... </span>
-          <kbd className="ml-auto hidden sm:inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px]">
+          <MagnifyingGlass size={22} className="shrink-0" />
+          <span>Buscar...</span>
+          <kbd className="ml-auto hidden sm:inline-flex h-5 items-center gap-0.5 rounded bg-background/60 px-1.5 font-mono text-[10px] text-muted-foreground">
             ⌘K
           </kbd>
         </button>
@@ -84,5 +80,5 @@ export function TopBar({
         />
       </div>
     </div>
-  )
+  );
 }

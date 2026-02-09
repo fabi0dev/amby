@@ -1,37 +1,37 @@
-'use client'
+'use client';
 
-import type React from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Button } from '@/components/ui/button'
-import type { ChatMessage, ChatAction, OpenDocumentAction } from './chat-types'
+import type React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Button } from '@/components/ui/button';
+import type { ChatMessage, ChatAction, OpenDocumentAction } from './chat-types';
 
-const MARKDOWN_PLUGINS = [remarkGfm]
+const MARKDOWN_PLUGINS = [remarkGfm];
 
 /** Garante que o markdown seja sempre uma string para o ReactMarkdown. */
 function getMarkdownContent(content: unknown): string {
-  if (content == null) return ''
-  const raw = typeof content === 'string' ? content : String(content)
-  return raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  if (content == null) return '';
+  const raw = typeof content === 'string' ? content : String(content);
+  return raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 }
 
 interface ChatMessagesListProps {
-  messages: ChatMessage[]
-  listRef: React.Ref<HTMLDivElement>
-  isSending: boolean
-  isLoading: boolean
-  canApplyToDocument: boolean
-  applyingMessageId: string | null
-  onApplyToDocument: (message: ChatMessage) => void
-  onOpenDocument?: (payload: OpenDocumentAction) => void
+  messages: ChatMessage[];
+  listRef: React.Ref<HTMLDivElement>;
+  isSending: boolean;
+  isLoading: boolean;
+  canApplyToDocument: boolean;
+  applyingMessageId: string | null;
+  onApplyToDocument: (message: ChatMessage) => void;
+  onOpenDocument?: (payload: OpenDocumentAction) => void;
   /** Quando true, a área pode crescer com o conteúdo (chat recolhido); a lista continua com scroll. */
-  growWithContent?: boolean
+  growWithContent?: boolean;
   /** Chamado quando o usuário clica em "Pesquisar no workspace" (query = pergunta original). */
-  onSearchWorkspace?: (query: string) => void
+  onSearchWorkspace?: (query: string) => void;
   /** Chamado quando o usuário confirma uma ação do chat (criar workspace, página, etc.). */
-  onExecuteChatAction?: (action: ChatAction) => void
+  onExecuteChatAction?: (action: ChatAction) => void;
   /** Indica que uma ação está sendo executada (desabilita botões). */
-  executingAction?: boolean
+  executingAction?: boolean;
 }
 
 export function ChatMessagesList({
@@ -58,9 +58,7 @@ export function ChatMessagesList({
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`flex ${
-            message.role === 'user' ? 'justify-end' : 'justify-start'
-          }`}
+          className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
         >
           <div className="flex flex-col items-stretch gap-2 max-w-[80%]">
             <div
@@ -110,7 +108,7 @@ export function ChatMessagesList({
                       />
                     ),
                     code: (props: React.HTMLAttributes<HTMLElement>) => {
-                      const isInline = !props.className?.includes('language-')
+                      const isInline = !props.className?.includes('language-');
                       return (
                         <code
                           {...props}
@@ -120,19 +118,13 @@ export function ChatMessagesList({
                               : `whitespace-pre-wrap break-words ${props.className ?? ''}`
                           }
                         />
-                      )
+                      );
                     },
                     ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-                      <ul
-                        {...props}
-                        className="list-disc list-inside space-y-0.5 my-1.5 pl-1"
-                      />
+                      <ul {...props} className="list-disc list-inside space-y-0.5 my-1.5 pl-1" />
                     ),
                     ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-                      <ol
-                        {...props}
-                        className="list-decimal list-inside space-y-0.5 my-1.5 pl-1"
-                      />
+                      <ol {...props} className="list-decimal list-inside space-y-0.5 my-1.5 pl-1" />
                     ),
                     li: (props: React.HTMLAttributes<HTMLLIElement>) => (
                       <li {...props} className="ml-1" />
@@ -191,38 +183,31 @@ export function ChatMessagesList({
                         type="button"
                         size="sm"
                         variant="secondary"
-                        onClick={() =>
-                          onSearchWorkspace(message.actions!.workspaceSearchQuery!)
-                        }
+                        onClick={() => onSearchWorkspace(message.actions!.workspaceSearchQuery!)}
                         className="h-7 px-2 text-[11px] w-fit"
                       >
                         Pesquisar no workspace
                       </Button>
                     </div>
                   )}
-                {message.actions?.documentMarkdown &&
-                  canApplyToDocument && (
-                    <>
-                      {message.actions.applied ? (
-                        <span className="text-[11px] text-emerald-500 font-medium">
-                          Aplicado!
-                        </span>
-                      ) : (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          disabled={applyingMessageId === message.id}
-                          onClick={() => void onApplyToDocument(message)}
-                          className="h-7 px-2 text-[11px]"
-                        >
-                          {applyingMessageId === message.id
-                            ? 'Aplicando...'
-                            : 'Aplicar no documento'}
-                        </Button>
-                      )}
-                    </>
-                  )}
+                {message.actions?.documentMarkdown && canApplyToDocument && (
+                  <>
+                    {message.actions.applied ? (
+                      <span className="text-[11px] text-emerald-500 font-medium">Aplicado!</span>
+                    ) : (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        disabled={applyingMessageId === message.id}
+                        onClick={() => void onApplyToDocument(message)}
+                        className="h-7 px-2 text-[11px]"
+                      >
+                        {applyingMessageId === message.id ? 'Aplicando...' : 'Aplicar no documento'}
+                      </Button>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -239,6 +224,5 @@ export function ChatMessagesList({
         </div>
       )}
     </div>
-  )
+  );
 }
-

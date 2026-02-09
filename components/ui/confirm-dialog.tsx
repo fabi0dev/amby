@@ -1,15 +1,15 @@
-import * as Dialog from '@radix-ui/react-dialog'
-import { Button } from './button'
+import * as Dialog from '@radix-ui/react-dialog';
+import { Button } from './button';
 
 interface ConfirmDialogProps {
-  open: boolean
-  title: string
-  description?: string
-  confirmLabel?: string
-  cancelLabel?: string
-  loading?: boolean
-  onConfirm: () => void
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  title: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  loading?: boolean;
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ConfirmDialog({
@@ -28,9 +28,7 @@ export function ConfirmDialog({
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-fade-in" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 focus:outline-none">
           <div className="rounded-lg border bg-background p-5 shadow-lg animate-scale-in">
-            <Dialog.Title className="text-base font-semibold text-foreground">
-              {title}
-            </Dialog.Title>
+            <Dialog.Title className="text-base font-semibold text-foreground">{title}</Dialog.Title>
             {description ? (
               <Dialog.Description className="mt-2 text-sm text-muted-foreground">
                 {description}
@@ -46,12 +44,7 @@ export function ConfirmDialog({
               >
                 {cancelLabel}
               </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={onConfirm}
-                disabled={loading}
-              >
+              <Button type="button" variant="destructive" onClick={onConfirm} disabled={loading}>
                 {loading ? 'Aguarde...' : confirmLabel}
               </Button>
             </div>
@@ -59,6 +52,5 @@ export function ConfirmDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }
-

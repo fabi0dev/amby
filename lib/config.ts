@@ -9,33 +9,33 @@ function getGroqApiKey(): string {
     process.env.GROQ_API_KEY ||
     process.env.NEXT_PUBLIC_GROQ_API_KEY ||
     (process.env as Record<string, string>).GROQ_API_KEY ||
-    ''
-  return raw.trim().replace(/\s+/g, '').replace(/\n/g, '').replace(/\r/g, '')
+    '';
+  return raw.trim().replace(/\s+/g, '').replace(/\n/g, '').replace(/\r/g, '');
 }
 
 /** Modelo Groq para o chat principal (completion). */
 function getGroqChatModel(): string {
-  return process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
+  return process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 }
 
 /** Modelo Groq para classificação de intenção (leve e rápido). */
 function getGroqClassifyModel(): string {
-  return process.env.GROQ_MODEL_CLASSIFY || 'llama-3.1-8b-instant'
+  return process.env.GROQ_MODEL_CLASSIFY || 'llama-3.1-8b-instant';
 }
 
 export const GROQ = {
   get apiKey(): string {
-    return getGroqApiKey()
+    return getGroqApiKey();
   },
   get chatModel(): string {
-    return getGroqChatModel()
+    return getGroqChatModel();
   },
   get classifyModel(): string {
-    return getGroqClassifyModel()
+    return getGroqClassifyModel();
   },
-} as const
+} as const;
 
-export const APP_NAME = 'Amby'
+export const APP_NAME = 'Amby';
 
 export const AUTH = {
   tagline: 'Plataforma self-hosted · Privacidade e controle',
@@ -47,8 +47,7 @@ export const AUTH = {
     },
     register: {
       title: 'Comece a documentar em minutos',
-      description:
-        'Crie sua conta, organize documentos em workspaces e colabore com sua equipe.',
+      description: 'Crie sua conta, organize documentos em workspaces e colabore com sua equipe.',
     },
   },
-} as const
+} as const;

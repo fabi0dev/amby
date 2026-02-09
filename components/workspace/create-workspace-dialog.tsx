@@ -1,15 +1,15 @@
-import * as Dialog from '@radix-ui/react-dialog'
-import { useState } from 'react'
-import { createWorkspace } from '@/app/actions/workspace'
-import { useToast } from '@/components/ui/use-toast'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import * as Dialog from '@radix-ui/react-dialog';
+import { useState } from 'react';
+import { createWorkspace } from '@/app/actions/workspace';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface CreateWorkspaceDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onCreated?: (workspace: { id: string; name: string }) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated?: (workspace: { id: string; name: string }) => void;
 }
 
 export function CreateWorkspaceDialog({
@@ -17,47 +17,47 @@ export function CreateWorkspaceDialog({
   onOpenChange,
   onCreated,
 }: CreateWorkspaceDialogProps) {
-  const { toast } = useToast()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleClose = () => {
-    if (isSubmitting) return
-    onOpenChange(false)
-  }
+    if (isSubmitting) return;
+    onOpenChange(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || isSubmitting) return
+    e.preventDefault();
+    if (!name.trim() || isSubmitting) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const result = await createWorkspace({
         name: name.trim(),
         description: description.trim() || null,
-      })
+      });
 
       if (result.data) {
         toast({
           title: 'Workspace criado',
           description: 'Seu novo espaço foi criado com sucesso.',
-        })
-        onCreated?.({ id: result.data.id, name: result.data.name })
-        setName('')
-        setDescription('')
-        onOpenChange(false)
+        });
+        onCreated?.({ id: result.data.id, name: result.data.name });
+        setName('');
+        setDescription('');
+        onOpenChange(false);
       } else {
         toast({
           title: 'Erro',
           description: result.error ?? 'Não foi possível criar o workspace',
           variant: 'destructive',
-        })
+        });
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -73,8 +73,8 @@ export function CreateWorkspaceDialog({
                 Novo workspace
               </Dialog.Title>
               <Dialog.Description className="text-sm text-muted-foreground">
-                Crie um espaço de trabalho e adicione uma breve descrição para
-                facilitar a organização dos seus conteúdos.
+                Crie um espaço de trabalho e adicione uma breve descrição para facilitar a
+                organização dos seus conteúdos.
               </Dialog.Description>
             </div>
 
@@ -91,9 +91,7 @@ export function CreateWorkspaceDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="workspace-description">
-                  Descrição (opcional)
-                </Label>
+                <Label htmlFor="workspace-description">Descrição (opcional)</Label>
                 <textarea
                   id="workspace-description"
                   placeholder="Explique brevemente o objetivo deste workspace, o tipo de conteúdo e qualquer contexto que ajude a identificá‑lo depois."
@@ -106,12 +104,7 @@ export function CreateWorkspaceDialog({
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting || !name.trim()}>
@@ -122,6 +115,5 @@ export function CreateWorkspaceDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }
-

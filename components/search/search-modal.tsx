@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,81 +9,81 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from 'cmdk'
-import { FileText, Folder } from '@phosphor-icons/react'
-import { useWorkspaceStore } from '@/stores/workspace-store'
-import { useDebounce } from '@/hooks/use-debounce'
+} from 'cmdk';
+import { FileText, Folder } from '@phosphor-icons/react';
+import { useWorkspaceStore } from '@/stores/workspace-store';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export type SearchModalProps = {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   /** Container para o portal (evita layout quebrado; modal fica sempre no topo). */
-  container?: HTMLElement | null
-}
+  container?: HTMLElement | null;
+};
 
 type SearchDocument = {
-  id: string
-  title: string
-  slug: string
-  workspaceId: string
-  updatedAt: string
-  workspace: { name: string }
-}
+  id: string;
+  title: string;
+  slug: string;
+  workspaceId: string;
+  updatedAt: string;
+  workspace: { name: string };
+};
 
 type SearchWorkspace = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 export function SearchModal({ open, onOpenChange, container }: SearchModalProps) {
-  const router = useRouter()
-  const { currentWorkspace } = useWorkspaceStore()
-  const [query, setQuery] = useState('')
-  const [documents, setDocuments] = useState<SearchDocument[]>([])
-  const [workspaces, setWorkspaces] = useState<SearchWorkspace[]>([])
-  const [loading, setLoading] = useState(false)
-  const debouncedQuery = useDebounce(query, 250)
+  const router = useRouter();
+  const { currentWorkspace } = useWorkspaceStore();
+  const [query, setQuery] = useState('');
+  const [documents, setDocuments] = useState<SearchDocument[]>([]);
+  const [workspaces, setWorkspaces] = useState<SearchWorkspace[]>([]);
+  const [loading, setLoading] = useState(false);
+  const debouncedQuery = useDebounce(query, 250);
 
   const runSearch = useCallback(async () => {
     if (!debouncedQuery || debouncedQuery.length < 2) {
-      setDocuments([])
-      setWorkspaces([])
-      return
+      setDocuments([]);
+      setWorkspaces([]);
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
       const params = new URLSearchParams({
         q: debouncedQuery,
         ...(currentWorkspace?.id && { workspaceId: currentWorkspace.id }),
-      })
-      const res = await fetch(`/api/search?${params}`)
-      if (!res.ok) return
-      const data = await res.json()
-      setDocuments(data.documents ?? [])
-      setWorkspaces(data.workspaces ?? [])
+      });
+      const res = await fetch(`/api/search?${params}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setDocuments(data.documents ?? []);
+      setWorkspaces(data.workspaces ?? []);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [debouncedQuery, currentWorkspace?.id])
+  }, [debouncedQuery, currentWorkspace?.id]);
 
   useEffect(() => {
-    if (!open) return
-    runSearch()
-  }, [open, debouncedQuery, runSearch])
+    if (!open) return;
+    runSearch();
+  }, [open, debouncedQuery, runSearch]);
 
   const closeAndNavigate = (fn: () => void) => {
-    onOpenChange(false)
-    setQuery('')
-    fn()
-  }
+    onOpenChange(false);
+    setQuery('');
+    fn();
+  };
 
   const goToDocument = (workspaceId: string, documentId: string) => {
-    closeAndNavigate(() => router.push(`/workspace/${workspaceId}/${documentId}`))
-  }
+    closeAndNavigate(() => router.push(`/workspace/${workspaceId}/${documentId}`));
+  };
 
   const goToWorkspace = (workspaceId: string) => {
-    closeAndNavigate(() => router.push(`/workspace/${workspaceId}`))
-  }
+    closeAndNavigate(() => router.push(`/workspace/${workspaceId}`));
+  };
 
   return (
     <CommandDialog
@@ -105,7 +105,11 @@ export function SearchModal({ open, onOpenChange, container }: SearchModalProps)
       />
       <CommandList className="flex-1 min-h-0 max-h-[min(60vh,400px)] overflow-y-auto overflow-x-hidden px-3 py-2">
         <CommandEmpty className="py-8 text-center text-sm text-muted-foreground">
-          {loading ? 'Buscando...' : debouncedQuery.length < 2 ? 'Digite ao menos 2 caracteres' : 'Nenhum resultado'}
+          {loading
+            ? 'Buscando...'
+            : debouncedQuery.length < 2
+              ? 'Digite ao menos 2 caracteres'
+              : 'Nenhum resultado'}
         </CommandEmpty>
         {!loading && (documents.length > 0 || workspaces.length > 0) && (
           <>
@@ -152,5 +156,5 @@ export function SearchModal({ open, onOpenChange, container }: SearchModalProps)
         )}
       </CommandList>
     </CommandDialog>
-  )
+  );
 }

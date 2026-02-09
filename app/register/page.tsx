@@ -1,60 +1,60 @@
-'use client'
+'use client';
 
-import { registerUser } from '@/app/actions/user'
-import { registerSchema } from '@/lib/validations/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AuthAlert, AuthPanelLeft, AuthFormWrapper } from '@/components/auth'
-import { AUTH } from '@/lib/config'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { registerUser } from '@/app/actions/user';
+import { registerSchema } from '@/lib/validations/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AuthAlert, AuthPanelLeft, AuthFormWrapper } from '@/components/auth';
+import { AUTH } from '@/lib/config';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function RegisterPage() {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
+    e.preventDefault();
+    setError('');
 
     const parsed = registerSchema.safeParse({
       name,
       email,
       password,
       confirmPassword,
-    })
+    });
     if (!parsed.success) {
-      setError(parsed.error.errors[0].message)
-      return
+      setError(parsed.error.errors[0].message);
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await registerUser(parsed.data)
+      const result = await registerUser(parsed.data);
 
       if (result?.error) {
-        setError(result.error)
-        setLoading(false)
-        return
+        setError(result.error);
+        setLoading(false);
+        return;
       }
 
-      router.push('/login?registered=1')
+      router.push('/login?registered=1');
     } catch {
-      setError('Erro ao criar conta. Tente novamente.')
+      setError('Erro ao criar conta. Tente novamente.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen bg-background transition-colors duration-300 dark:bg-[hsl(222.2,84%,4.5%)]">
+    <div className="flex min-h-screen bg-background transition-colors duration-300 dark:bg-background">
       <AuthPanelLeft
         title={AUTH.panel.register.title}
         description={AUTH.panel.register.description}
@@ -159,5 +159,5 @@ export default function RegisterPage() {
         </form>
       </AuthFormWrapper>
     </div>
-  )
+  );
 }

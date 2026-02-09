@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import { APP_NAME } from '@/lib/config'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { APP_NAME } from '@/lib/config';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface AuthFormWrapperProps {
-  title: string
-  description: string
-  children: React.ReactNode
-  footer: React.ReactNode
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  footer: React.ReactNode;
   /** Delay base para animações (ex: 2 = auth-form-enter-delay-2) */
-  enterDelayBase?: number
-  className?: string
+  enterDelayBase?: number;
+  className?: string;
 }
 
 export function AuthFormWrapper({
@@ -22,13 +22,13 @@ export function AuthFormWrapper({
   enterDelayBase = 2,
   className,
 }: AuthFormWrapperProps) {
-  const delay = (n: number) => `auth-form-enter auth-form-enter-delay-${enterDelayBase + n}`
+  const delay = (n: number) => `auth-form-enter auth-form-enter-delay-${enterDelayBase + n}`;
 
   return (
     <div
       className={cn(
         'auth-panel-right flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-16',
-        className
+        className,
       )}
     >
       <div className="mx-auto w-full max-w-sm space-y-8">
@@ -51,5 +51,5 @@ export function AuthFormWrapper({
         <p className={cn('text-center text-sm text-muted-foreground', delay(6))}>{footer}</p>
       </div>
     </div>
-  )
+  );
 }

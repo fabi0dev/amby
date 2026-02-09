@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url)
-    const q = searchParams.get('q')?.trim() ?? ''
-    const workspaceId = searchParams.get('workspaceId')
+    const { searchParams } = new URL(request.url);
+    const q = searchParams.get('q')?.trim() ?? '';
+    const workspaceId = searchParams.get('workspaceId');
 
     if (!q || q.length < 2) {
-      return NextResponse.json({ documents: [], workspaces: [] })
+      return NextResponse.json({ documents: [], workspaces: [] });
     }
 
     const userWorkspaceIds = await prisma.workspaceMember
@@ -23,17 +23,17 @@ export async function GET(request: NextRequest) {
         where: { userId: session.user.id },
         select: { workspaceId: true },
       })
-      .then((rows) => rows.map((r) => r.workspaceId))
+      .then((rows) => rows.map((r) => r.workspaceId));
 
     if (userWorkspaceIds.length === 0) {
-      return NextResponse.json({ documents: [], workspaces: [] })
+      return NextResponse.json({ documents: [], workspaces: [] });
     }
 
     const workspaceFilter = workspaceId
       ? userWorkspaceIds.includes(workspaceId)
         ? [workspaceId]
         : userWorkspaceIds
-      : userWorkspaceIds
+      : userWorkspaceIds;
 
     const documents = await prisma.document.findMany({
       where: {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       },
       take: 15,
       orderBy: { updatedAt: 'desc' },
-    })
+    });
 
     const workspaces = await prisma.workspace.findMany({
       where: {
@@ -63,11 +63,11 @@ export async function GET(request: NextRequest) {
         name: true,
       },
       take: 5,
-    })
+    });
 
-    return NextResponse.json({ documents, workspaces })
+    return NextResponse.json({ documents, workspaces });
   } catch (error) {
-    console.error('Erro na busca:', error)
-    return NextResponse.json({ error: 'Erro na busca' }, { status: 500 })
+    console.error('Erro na busca:', error);
+    return NextResponse.json({ error: 'Erro na busca' }, { status: 500 });
   }
 }

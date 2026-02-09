@@ -950,6 +950,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pkgr/core@npm:^0.2.9":
+  version: 0.2.9
+  resolution: "@pkgr/core@npm:0.2.9"
+  checksum: 10c0/ac8e4e8138b1a7a4ac6282873aef7389c352f1f8b577b4850778f5182e4a39a5241facbe48361fec817f56d02b51691b383010843fb08b34a8e8ea3614688fd5
+  languageName: node
+  linkType: hard
+
 "@popperjs/core@npm:^2.9.0":
   version: 2.11.8
   resolution: "@popperjs/core@npm:2.11.8"
@@ -2411,12 +2418,12 @@ __metadata:
   linkType: hard
 
 "@tiptap/extension-placeholder@npm:^2.1.13":
-  version: 2.1.13
-  resolution: "@tiptap/extension-placeholder@npm:2.1.13"
+  version: 2.27.2
+  resolution: "@tiptap/extension-placeholder@npm:2.27.2"
   peerDependencies:
-    "@tiptap/core": ^2.0.0
-    "@tiptap/pm": ^2.0.0
-  checksum: 10c0/c5fbe1ba8afc686b9882aae67520ce12ebcf15990d3157d40a6d63bec5534f4582dfb9bfa1081a40325702f8f2117cd62e9f03ed216e474641c39a22aaef1428
+    "@tiptap/core": ^2.7.0
+    "@tiptap/pm": ^2.7.0
+  checksum: 10c0/107e4def41c66cda90348577e7baea39f84e2f6e83da277d8b2ff65dced8cc2ea6540e7c633074cf60232f5808eaffe8e129750220ae39067dd4180d1599afae
   languageName: node
   linkType: hard
 
@@ -2426,6 +2433,43 @@ __metadata:
   peerDependencies:
     "@tiptap/core": ^2.7.0
   checksum: 10c0/dd6e815adc9ea9bbde87dbbe95ae33abd62801edf597a5dc229b5b69009537b139d3aa1a35a090abea5484a0141cee29cf81ed14b5f46a4dadf3f187f1033ad4
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-table-cell@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-table-cell@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/extension-table": ^3.19.0
+  checksum: 10c0/595b76aba9c2f602732ba9f65133697186f9d783edea84aeafa612bb7e1027ee833738e299ce17d2b64e44c4c029f6cd976ff0c44d071a19f8756503efb1bb55
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-table-header@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-table-header@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/extension-table": ^3.19.0
+  checksum: 10c0/5b755a9a696048ba1c8ed8151247d29b76ac3787f8253e92c5cb7fb12abf4fc88da565e1a093f6d9b99185d3779ce04a6bb3443e7ece612f38f7c552c9967966
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-table-row@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-table-row@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/extension-table": ^3.19.0
+  checksum: 10c0/be3f8c873e87ea4684d8b36030b3e49e5af9e419f3e038b52f04fbd702fb549161a76b21999a562b07dc6bb8e655fae774d6584a92fb5f6a0ce959d702427226
+  languageName: node
+  linkType: hard
+
+"@tiptap/extension-table@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@tiptap/extension-table@npm:3.19.0"
+  peerDependencies:
+    "@tiptap/core": ^3.19.0
+    "@tiptap/pm": ^3.19.0
+  checksum: 10c0/be6e2c9201b1e97a132b1985d06924daf9cb8310685a49fd6fbdf1f1fd502a7d39fbfa780f2d9dd8c8cc50cf36c7ef2a3ca812c1f4261c5f1959a56aa3dba0f9
   languageName: node
   linkType: hard
 
@@ -2732,11 +2776,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 25.2.1
-  resolution: "@types/node@npm:25.2.1"
+  version: 25.2.2
+  resolution: "@types/node@npm:25.2.2"
   dependencies:
     undici-types: "npm:~7.16.0"
-  checksum: 10c0/ce42fa07495093c55b6398e3c4346d644a61b8c4f59d2e0c0ed152ea0e4327c60a41d5fdfa3e0fc4f4776eb925e2b783b6b942501fc044328a44980bc2de4dc6
+  checksum: 10c0/45aa45b00df0aac4712c2d6e934a6ed21ac54e0284dd726df1c7620b8c7d36a4fb601b9f8fe1d2951298d1ee7618cf8275688e329c295eb36e8b8fa827a8e334
   languageName: node
   linkType: hard
 
@@ -2750,11 +2794,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^20.11.5":
-  version: 20.19.32
-  resolution: "@types/node@npm:20.19.32"
+  version: 20.19.33
+  resolution: "@types/node@npm:20.19.33"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/ae2a541c6f9454b102212c801f2a1e2869a4cbd1e6c05dabed42830a6a3c25f5b3259fbaadffde5f464263035b65cce1ae1324fbeb5f20639df2b92419bdb26b
+  checksum: 10c0/a1a6234a2b6fa577fbb1ccc471e5e54a79c6e1a51be10a67b034461b752a50017854810e943494f20b3c3c6d14df84c93757e0a2ec57aa81c830d6faeab72cf2
   languageName: node
   linkType: hard
 
@@ -3192,6 +3236,10 @@ __metadata:
     "@tiptap/extension-collaboration-cursor": "npm:^2.1.13"
     "@tiptap/extension-link": "npm:^3.19.0"
     "@tiptap/extension-placeholder": "npm:^2.1.13"
+    "@tiptap/extension-table": "npm:^3.19.0"
+    "@tiptap/extension-table-cell": "npm:^3.19.0"
+    "@tiptap/extension-table-header": "npm:^3.19.0"
+    "@tiptap/extension-table-row": "npm:^3.19.0"
     "@tiptap/extension-task-item": "npm:2.1.0-rc.3"
     "@tiptap/extension-task-list": "npm:2.1.0-rc.3"
     "@tiptap/extension-text-align": "npm:^3.19.0"
@@ -3214,11 +3262,14 @@ __metadata:
     diff: "npm:^8.0.3"
     eslint: "npm:^8.56.0"
     eslint-config-next: "npm:14.1.0"
+    eslint-config-prettier: "npm:^9.1.2"
+    eslint-plugin-prettier: "npm:^5.5.5"
     groq-sdk: "npm:^0.37.0"
     jsdom: "npm:^28.0.0"
     next: "npm:14.1.0"
     next-auth: "npm:^4.24.5"
     postgres: "npm:^3.4.3"
+    prettier: "npm:^3.8.1"
     prisma: "npm:^5.9.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -4461,6 +4512,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-config-prettier@npm:^9.1.2":
+  version: 9.1.2
+  resolution: "eslint-config-prettier@npm:9.1.2"
+  peerDependencies:
+    eslint: ">=7.0.0"
+  bin:
+    eslint-config-prettier: bin/cli.js
+  checksum: 10c0/d2e9dc913b1677764a4732433d83d258f40820458c65d0274cb9e3eaf6559b39f2136446f310c05abed065a4b3c2e901807ccf583dff76c6227eaebf4132c39a
+  languageName: node
+  linkType: hard
+
 "eslint-import-resolver-node@npm:^0.3.6, eslint-import-resolver-node@npm:^0.3.9":
   version: 0.3.9
   resolution: "eslint-import-resolver-node@npm:0.3.9"
@@ -4559,6 +4621,26 @@ __metadata:
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9
   checksum: 10c0/d93354e03b0cf66f018d5c50964e074dffe4ddf1f9b535fa020d19c4ae45f89c1a16e9391ca61ac3b19f7042c751ac0d361a056a65cbd1de24718a53ff8daa6e
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-prettier@npm:^5.5.5":
+  version: 5.5.5
+  resolution: "eslint-plugin-prettier@npm:5.5.5"
+  dependencies:
+    prettier-linter-helpers: "npm:^1.0.1"
+    synckit: "npm:^0.11.12"
+  peerDependencies:
+    "@types/eslint": ">=8.0.0"
+    eslint: ">=8.0.0"
+    eslint-config-prettier: ">= 7.0.0 <10.0.0 || >=10.1.0"
+    prettier: ">=3.0.0"
+  peerDependenciesMeta:
+    "@types/eslint":
+      optional: true
+    eslint-config-prettier:
+      optional: true
+  checksum: 10c0/091449b28c77ab2efbbf674e977181f2c8453d95a4df68218bddd87a4dfaa9ecc4eda60164e416f5986fb5d577e66e8d8e1e23d81e8555f8d735375598b03257
   languageName: node
   linkType: hard
 
@@ -4755,6 +4837,13 @@ __metadata:
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
   checksum: 10c0/40dedc862eb8992c54579c66d914635afbec43350afbbe991235fdcb4e3a8d5af1b23ae7e79bef7d4882d0ecee06c3197488026998fb19f72dc95acff1d1b1d0
+  languageName: node
+  linkType: hard
+
+"fast-diff@npm:^1.1.2":
+  version: 1.3.0
+  resolution: "fast-diff@npm:1.3.0"
+  checksum: 10c0/5c19af237edb5d5effda008c891a18a585f74bf12953be57923f17a3a4d0979565fc64dbc73b9e20926b9d895f5b690c618cbb969af0cf022e3222471220ad29
   languageName: node
   linkType: hard
 
@@ -5718,9 +5807,9 @@ __metadata:
   linkType: hard
 
 "isexe@npm:^3.1.1":
-  version: 3.1.2
-  resolution: "isexe@npm:3.1.2"
-  checksum: 10c0/1081adb0e9d8dd6d313916e39c81b683ab0e304bcec388b7bb400da988180dc576be7b298e6cd55d89fc5e98f32c1d73c2e04d2454c6115f58b28a8040d421ed
+  version: 3.1.5
+  resolution: "isexe@npm:3.1.5"
+  checksum: 10c0/8be2973a09f2f804ea1f34bfccfd5ea219ef48083bdb12107fe5bcf96b3e36b85084409e1b09ddaf2fae8927fdd9f6d70d90baadb78caa1ca7c530935706c8a4
   languageName: node
   linkType: hard
 
@@ -7001,9 +7090,9 @@ __metadata:
   linkType: hard
 
 "oauth4webapi@npm:^3.3.0":
-  version: 3.8.3
-  resolution: "oauth4webapi@npm:3.8.3"
-  checksum: 10c0/9730a3231304c419ca26b3bce238d437e763a87645a9761b4a1a044eccc120660ea6b4fbba4a86f6411eaaabc8a59777f60f2afff888d7a3b784c5ce5dddfa09
+  version: 3.8.4
+  resolution: "oauth4webapi@npm:3.8.4"
+  checksum: 10c0/961d82ecb44b994b116616f7f60b2c6ba03dfccb36815e4b8976597e98da1938521ed6465807d6941029ea69488ea146de2bf210eb69a435c109e18a6f46ec80
   languageName: node
   linkType: hard
 
@@ -7481,6 +7570,24 @@ __metadata:
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
   checksum: 10c0/b00d617431e7886c520a6f498a2e14c75ec58f6d93ba48c3b639cf241b54232d90daa05d83a9e9b9fef6baa63cb7e1e4602c2372fea5bc169668401eb127d0cd
+  languageName: node
+  linkType: hard
+
+"prettier-linter-helpers@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "prettier-linter-helpers@npm:1.0.1"
+  dependencies:
+    fast-diff: "npm:^1.1.2"
+  checksum: 10c0/91cea965681bc5f62c9d26bd3ca6358b81557261d4802e96ec1cf0acbd99d4b61632d53320cd2c3ec7d7f7805a81345644108a41ef46ddc9688e783a9ac792d1
+  languageName: node
+  linkType: hard
+
+"prettier@npm:^3.8.1":
+  version: 3.8.1
+  resolution: "prettier@npm:3.8.1"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: 10c0/33169b594009e48f570471271be7eac7cdcf88a209eed39ac3b8d6d78984039bfa9132f82b7e6ba3b06711f3bfe0222a62a1bfb87c43f50c25a83df1b78a2c42
   languageName: node
   linkType: hard
 
@@ -8698,6 +8805,15 @@ __metadata:
   version: 3.2.4
   resolution: "symbol-tree@npm:3.2.4"
   checksum: 10c0/dfbe201ae09ac6053d163578778c53aa860a784147ecf95705de0cd23f42c851e1be7889241495e95c37cabb058edb1052f141387bef68f705afc8f9dd358509
+  languageName: node
+  linkType: hard
+
+"synckit@npm:^0.11.12":
+  version: 0.11.12
+  resolution: "synckit@npm:0.11.12"
+  dependencies:
+    "@pkgr/core": "npm:^0.2.9"
+  checksum: 10c0/cc4d446806688ae0d728ae7bb3f53176d065cf9536647fb85bdd721dcefbd7bf94874df6799ff61580f2b03a392659219b778a9254ad499f9a1f56c34787c235
   languageName: node
   linkType: hard
 

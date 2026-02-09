@@ -1,81 +1,76 @@
-'use client'
+'use client';
 
-import { useEffect, useMemo, useState } from 'react'
-import * as Dialog from '@radix-ui/react-dialog'
-import { useQueryClient } from '@tanstack/react-query'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { diffLines, type Change } from 'diff'
-import Image from 'next/image'
-import { format, isToday, isYesterday } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-import { X } from '@phosphor-icons/react'
-import { Button } from '@/components/ui/button'
-import { useDocumentVersions, type DocumentVersionWithUser } from '@/hooks/use-documents'
-import { queryKeys } from '@/lib/query-keys'
-import { getMarkdownFromContent } from '@/lib/document-content'
-import { updateDocument } from '@/app/actions/documents'
-import { useToast } from '@/components/ui/use-toast'
-import { cn } from '@/lib/utils'
+import { useEffect, useMemo, useState } from 'react';
+import * as Dialog from '@radix-ui/react-dialog';
+import { useQueryClient } from '@tanstack/react-query';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { diffLines, type Change } from 'diff';
+import Image from 'next/image';
+import { format, isToday, isYesterday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { X } from '@phosphor-icons/react';
+import { Button } from '@/components/ui/button';
+import { useDocumentVersions, type DocumentVersionWithUser } from '@/hooks/use-documents';
+import { queryKeys } from '@/lib/query-keys';
+import { getMarkdownFromContent } from '@/lib/document-content';
+import { updateDocument } from '@/app/actions/documents';
+import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+import { useDocumentStore } from '@/stores/document-store';
 
 function formatVersionDate(dateStr: string): string {
-  const d = new Date(dateStr)
-  if (isToday(d)) return format(d, 'HH:mm', { locale: ptBR })
-  if (isYesterday(d)) return `Ontem, ${format(d, 'HH:mm', { locale: ptBR })}`
-  return format(d, "dd 'de' MMM, yyyy HH:mm", { locale: ptBR })
+  const d = new Date(dateStr);
+  if (isToday(d)) return format(d, 'HH:mm', { locale: ptBR });
+  if (isYesterday(d)) return `Ontem, ${format(d, 'HH:mm', { locale: ptBR })}`;
+  return format(d, "dd 'de' MMM, yyyy HH:mm", { locale: ptBR });
 }
 
 function getDiffChanges(oldText: string, newText: string): Change[] {
-  return diffLines(oldText, newText)
+  return diffLines(oldText, newText);
 }
 
 /** Agrupa alterações em "hunks" (blocos consecutivos added/removed) para navegação */
 function getChangeHunks(changes: Change[]): number {
-  let hunks = 0
-  let inBlock = false
+  let hunks = 0;
+  let inBlock = false;
   for (const c of changes) {
     if (c.added || c.removed) {
       if (!inBlock) {
-        hunks++
-        inBlock = true
+        hunks++;
+        inBlock = true;
       }
     } else {
-      inBlock = false
+      inBlock = false;
     }
   }
-  return hunks
+  return hunks;
 }
 
-function HistoryMarkdown({
-  markdown,
-  className,
-}: {
-  markdown: string
-  className?: string
-}) {
-  if (!markdown) return null
+function HistoryMarkdown({ markdown, className }: { markdown: string; className?: string }) {
+  if (!markdown) return null;
 
   return (
     <div
       className={cn(
         'history-formatted text-sm text-foreground [&_h1]:mb-3 [&_h1]:mt-4 [&_h1]:text-lg [&_h1]:font-semibold [&_h1:first-child]:mt-0 [&_h2]:mb-2 [&_h2]:mt-3 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mb-1.5 [&_h3]:mt-2 [&_h3]:text-sm [&_h3]:font-medium [&_p]:my-2 [&_p:first-child]:mt-0 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-0.5 [&_blockquote]:border-l-4 [&_blockquote]:border-muted-foreground/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-xs [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-muted [&_pre]:p-3 [&_pre]:text-xs',
-        className
+        className,
       )}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
     </div>
-  )
+  );
 }
 
 type HistoryVersionListProps = {
-  versions: DocumentVersionWithUser
-  selectedVersion: DocumentVersionWithUser[number] | null
-  isLoading: boolean
-  isRestoring: boolean
-  onSelectVersion: (version: DocumentVersionWithUser[number]) => void
-  onCancel: () => void
-  onRestore: () => void
-}
+  versions: DocumentVersionWithUser;
+  selectedVersion: DocumentVersionWithUser[number] | null;
+  isLoading: boolean;
+  isRestoring: boolean;
+  onSelectVersion: (version: DocumentVersionWithUser[number]) => void;
+  onCancel: () => void;
+  onRestore: () => void;
+};
 
 function HistoryVersionList({
   versions,
@@ -86,7 +81,7 @@ function HistoryVersionList({
   onCancel,
   onRestore,
 }: HistoryVersionListProps) {
-  const hasVersions = versions.length > 0
+  const hasVersions = versions.length > 0;
 
   return (
     <div className="flex w-72 shrink-0 flex-col border-r bg-muted/30">
@@ -104,19 +99,19 @@ function HistoryVersionList({
             const meta =
               v.metadata && typeof v.metadata === 'object'
                 ? (v.metadata as {
-                    fromWorkspaceName?: string | null
-                    toWorkspaceName?: string | null
+                    fromWorkspaceName?: string | null;
+                    toWorkspaceName?: string | null;
                   })
-                : {}
+                : {};
 
             const movedLabel =
               v.event === 'moved'
                 ? meta.fromWorkspaceName && meta.toWorkspaceName
                   ? `Página movida de ${meta.fromWorkspaceName} para ${meta.toWorkspaceName}`
                   : 'Página movida para outro espaço'
-                : null
+                : null;
 
-            const isSelected = selectedVersion?.id === v.id
+            const isSelected = selectedVersion?.id === v.id;
 
             return (
               <button
@@ -125,18 +120,12 @@ function HistoryVersionList({
                 onClick={() => onSelectVersion(v)}
                 className={cn(
                   'mb-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors',
-                  isSelected ? 'bg-primary/15 text-primary' : 'hover:bg-muted'
+                  isSelected ? 'bg-primary/15 text-primary' : 'hover:bg-muted',
                 )}
               >
                 <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-muted">
                   {v.user.image ? (
-                    <Image
-                      src={v.user.image}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="32px"
-                    />
+                    <Image src={v.user.image} alt="" fill className="object-cover" sizes="32px" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center text-xs font-medium text-muted-foreground">
                       {(v.user.name ?? '?').slice(0, 1).toUpperCase()}
@@ -164,20 +153,14 @@ function HistoryVersionList({
                   )}
                 </div>
               </button>
-            )
+            );
           })}
         </div>
       )}
 
       {hasVersions && (
         <div className="flex shrink-0 gap-2 border-t p-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={onCancel}
-          >
+          <Button type="button" variant="outline" size="sm" className="flex-1" onClick={onCancel}>
             Cancelar
           </Button>
           <Button
@@ -192,21 +175,21 @@ function HistoryVersionList({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 type HistoryContentProps = {
-  selectedVersion: DocumentVersionWithUser[number] | null
-  highlightChanges: boolean
-  onHighlightChangesChange: (value: boolean) => void
-  diffChanges: Change[] | null
-  selectedIndex: number
-  totalHunks: number
-  currentHunk: number
-  changeIndex: number
-  setChangeIndex: (updater: (prev: number) => number) => void
-  selectedMarkdown: string
-}
+  selectedVersion: DocumentVersionWithUser[number] | null;
+  highlightChanges: boolean;
+  onHighlightChangesChange: (value: boolean) => void;
+  diffChanges: Change[] | null;
+  selectedIndex: number;
+  totalHunks: number;
+  currentHunk: number;
+  changeIndex: number;
+  setChangeIndex: (updater: (prev: number) => number) => void;
+  selectedMarkdown: string;
+};
 
 function HistoryContent({
   selectedVersion,
@@ -225,10 +208,10 @@ function HistoryContent({
       <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         Selecione uma versão para visualizar
       </div>
-    )
+    );
   }
 
-  const showDiff = highlightChanges && diffChanges && selectedIndex >= 0
+  const showDiff = highlightChanges && diffChanges && selectedIndex >= 0;
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-background">
@@ -259,9 +242,7 @@ function HistoryContent({
             <button
               type="button"
               className="rounded p-1 hover:bg-muted disabled:opacity-40"
-              onClick={() =>
-                setChangeIndex((i) => Math.min(totalHunks - 1, i + 1))
-              }
+              onClick={() => setChangeIndex((i) => Math.min(totalHunks - 1, i + 1))}
               disabled={changeIndex >= totalHunks - 1}
               aria-label="Próxima alteração"
             >
@@ -277,16 +258,10 @@ function HistoryContent({
               const diffClassName = part.added
                 ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                 : part.removed
-                ? 'bg-red-500/20 text-red-700 dark:text-red-400'
-                : undefined
+                  ? 'bg-red-500/20 text-red-700 dark:text-red-400'
+                  : undefined;
 
-              return (
-                <HistoryMarkdown
-                  key={i}
-                  markdown={part.value}
-                  className={diffClassName}
-                />
-              )
+              return <HistoryMarkdown key={i} markdown={part.value} className={diffClassName} />;
             })}
           </div>
         ) : selectedMarkdown ? (
@@ -296,7 +271,7 @@ function HistoryContent({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export function PageHistoryModal({
@@ -305,100 +280,101 @@ export function PageHistoryModal({
   workspaceId,
   documentId,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  workspaceId: string
-  documentId: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  workspaceId: string;
+  documentId: string;
 }) {
-  const { data: versions = [], isLoading } = useDocumentVersions(
-    workspaceId,
-    documentId
-  )
-  const [selectedVersion, setSelectedVersion] =
-    useState<DocumentVersionWithUser[number] | null>(null)
-  const [highlightChanges, setHighlightChanges] = useState(false)
-  const [changeIndex, setChangeIndex] = useState(0)
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
+  const { data: versions = [], isLoading } = useDocumentVersions(workspaceId, documentId);
+  const [selectedVersion, setSelectedVersion] = useState<DocumentVersionWithUser[number] | null>(
+    null,
+  );
+  const [highlightChanges, setHighlightChanges] = useState(false);
+  const [changeIndex, setChangeIndex] = useState(0);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { currentDocument, setCurrentDocument } = useDocumentStore();
 
   const selectedIndex = useMemo(
-    () =>
-      selectedVersion
-        ? versions.findIndex((v) => v.id === selectedVersion.id)
-        : -1,
-    [versions, selectedVersion]
-  )
+    () => (selectedVersion ? versions.findIndex((v) => v.id === selectedVersion.id) : -1),
+    [versions, selectedVersion],
+  );
 
   const previousVersion = useMemo(() => {
-    if (selectedIndex <= 0 || selectedIndex > versions.length - 1) return null
-    return versions[selectedIndex - 1] ?? null
-  }, [versions, selectedIndex])
+    if (selectedIndex <= 0 || selectedIndex > versions.length - 1) return null;
+    return versions[selectedIndex - 1] ?? null;
+  }, [versions, selectedIndex]);
 
   const selectedMarkdown = useMemo(
-    () =>
-      selectedVersion ? getMarkdownFromContent(selectedVersion.content) : '',
-    [selectedVersion]
-  )
+    () => (selectedVersion ? getMarkdownFromContent(selectedVersion.content) : ''),
+    [selectedVersion],
+  );
 
   const previousMarkdown = useMemo(
-    () =>
-      previousVersion ? getMarkdownFromContent(previousVersion.content) : '',
-    [previousVersion]
-  )
+    () => (previousVersion ? getMarkdownFromContent(previousVersion.content) : ''),
+    [previousVersion],
+  );
 
   const diffChanges = useMemo(() => {
-    if (!highlightChanges || selectedIndex < 0) return null
-    return getDiffChanges(previousMarkdown, selectedMarkdown)
-  }, [highlightChanges, previousMarkdown, selectedMarkdown, selectedIndex])
+    if (!highlightChanges || selectedIndex < 0) return null;
+    return getDiffChanges(previousMarkdown, selectedMarkdown);
+  }, [highlightChanges, previousMarkdown, selectedMarkdown, selectedIndex]);
 
-  const totalHunks = useMemo(
-    () => (diffChanges ? getChangeHunks(diffChanges) : 0),
-    [diffChanges]
-  )
+  const totalHunks = useMemo(() => (diffChanges ? getChangeHunks(diffChanges) : 0), [diffChanges]);
 
-  const currentHunk = Math.min(changeIndex + 1, Math.max(1, totalHunks))
+  const currentHunk = Math.min(changeIndex + 1, Math.max(1, totalHunks));
 
-  const [isRestoring, setIsRestoring] = useState(false)
+  const [isRestoring, setIsRestoring] = useState(false);
 
   useEffect(() => {
     if (open && versions.length > 0 && !selectedVersion) {
-      setSelectedVersion(versions[0] ?? null)
+      setSelectedVersion(versions[0] ?? null);
     }
     if (!open) {
-      setSelectedVersion(null)
-      setChangeIndex(0)
+      setSelectedVersion(null);
+      setChangeIndex(0);
     }
-  }, [open, versions, selectedVersion])
+  }, [open, versions, selectedVersion]);
 
   const handleRestore = async () => {
-    if (!selectedVersion || !documentId) return
-    setIsRestoring(true)
+    if (!selectedVersion || !documentId) return;
+    setIsRestoring(true);
     try {
       const result = await updateDocument({
         documentId,
         content: selectedVersion.content,
-      })
+      });
       if (result.error) {
-        toast({ title: 'Erro', description: result.error, variant: 'destructive' })
-        return
+        toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+        return;
       }
-      toast({ title: 'Versão restaurada' })
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.documents.detail(workspaceId, documentId).queryKey,
-      })
+      toast({ title: 'Versão restaurada' });
+      // Atualizar store e cache no mesmo padrão do editor e do chat (aplicar no documento)
+      const contentRestored = JSON.parse(JSON.stringify(selectedVersion.content));
+      if (currentDocument?.id === documentId) {
+        const updated = { ...currentDocument, content: contentRestored };
+        setCurrentDocument(updated);
+        queryClient.setQueryData(
+          queryKeys.documents.detail(workspaceId, documentId).queryKey,
+          (old: unknown) => (old ? { ...(old as object), ...updated } : updated),
+        );
+      }
       await queryClient.invalidateQueries({
         queryKey: queryKeys.documents.versions(documentId).queryKey,
-      })
-      onOpenChange(false)
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+      });
+      onOpenChange(false);
     } finally {
-      setIsRestoring(false)
+      setIsRestoring(false);
     }
-  }
+  };
 
   const displayVersions = useMemo(() => {
-    if (!versions.length) return []
-    return [...versions]
-  }, [versions])
+    if (!versions.length) return [];
+    return [...versions];
+  }, [versions]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -409,9 +385,7 @@ export function PageHistoryModal({
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
-            <Dialog.Title className="text-base font-semibold">
-              Histórico da página
-            </Dialog.Title>
+            <Dialog.Title className="text-base font-semibold">Histórico da página</Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
@@ -430,8 +404,8 @@ export function PageHistoryModal({
               isLoading={isLoading}
               isRestoring={isRestoring}
               onSelectVersion={(v) => {
-                setSelectedVersion(v)
-                setChangeIndex(0)
+                setSelectedVersion(v);
+                setChangeIndex(0);
               }}
               onCancel={() => onOpenChange(false)}
               onRestore={() => void handleRestore()}
@@ -453,5 +427,5 @@ export function PageHistoryModal({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }

@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(
-  _request: NextRequest,
+export async function POST(
+  request: NextRequest,
   { params }: { params: { workspaceId: string; documentId: string } },
 ) {
   try {
@@ -31,29 +31,47 @@ export async function GET(
         workspaceId: params.workspaceId,
         deletedAt: null,
       },
+      select: { id: true },
     });
 
     if (!document) {
       return NextResponse.json({ error: 'Documento não encontrado' }, { status: 404 });
     }
 
-    const versions = await prisma.documentVersion.findMany({
-      where: { documentId: params.documentId },
+    const body = await request.json().catch(() => null);
+
+    const content = typeof body?.content === 'string' ? body.content.trim() : '';
+    const position = body && typeof body.position === 'object' ? body.position : undefined;
+
+    if (!content) {
+      return NextResponse.json(
+        { error: 'O conteúdo do comentário é obrigatório.' },
+        { status: 400 },
+      );
+    }
+
+    const comment = await prisma.documentComment.create({
+      data: {
+        documentId: document.id,
+        userId: session.user.id,
+        content,
+        position: position ?? null,
+      },
       include: {
         user: {
           select: {
             id: true,
             name: true,
+            email: true,
             image: true,
           },
         },
       },
-      orderBy: { version: 'desc' },
     });
 
-    return NextResponse.json(versions);
+    return NextResponse.json(comment, { status: 201 });
   } catch (error) {
-    console.error('Erro ao buscar versões:', error);
-    return NextResponse.json({ error: 'Erro ao buscar histórico' }, { status: 500 });
+    console.error('Erro ao criar comentário:', error);
+    return NextResponse.json({ error: 'Erro ao criar comentário' }, { status: 500 });
   }
 }

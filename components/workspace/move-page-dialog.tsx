@@ -1,18 +1,18 @@
-import * as Dialog from '@radix-ui/react-dialog'
-import { useMemo, useState } from 'react'
-import { moveDocumentToWorkspace } from '@/app/actions/documents'
-import { useToast } from '@/components/ui/use-toast'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useWorkspaces } from '@/hooks/use-workspaces'
+import * as Dialog from '@radix-ui/react-dialog';
+import { useMemo, useState } from 'react';
+import { moveDocumentToWorkspace } from '@/app/actions/documents';
+import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useWorkspaces } from '@/hooks/use-workspaces';
 
 interface MovePageDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  documentId: string
-  documentTitle: string
-  currentWorkspaceId: string
-  onMoved?: (targetWorkspaceId: string) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  documentId: string;
+  documentTitle: string;
+  currentWorkspaceId: string;
+  onMoved?: (targetWorkspaceId: string) => void;
 }
 
 export function MovePageDialog({
@@ -23,68 +23,65 @@ export function MovePageDialog({
   currentWorkspaceId,
   onMoved,
 }: MovePageDialogProps) {
-  const { toast } = useToast()
-  const { data: workspaces, isLoading } = useWorkspaces()
-  const [search, setSearch] = useState('')
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast();
+  const { data: workspaces, isLoading } = useWorkspaces();
+  const [search, setSearch] = useState('');
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const availableWorkspaces = useMemo(
-    () =>
-      (workspaces || []).filter((ws) => ws.id !== currentWorkspaceId),
-    [workspaces, currentWorkspaceId]
-  )
+    () => (workspaces || []).filter((ws) => ws.id !== currentWorkspaceId),
+    [workspaces, currentWorkspaceId],
+  );
 
   const filteredWorkspaces = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    if (!term) return availableWorkspaces
-    return availableWorkspaces.filter((ws) =>
-      ws.name.toLowerCase().includes(term)
-    )
-  }, [availableWorkspaces, search])
+    const term = search.trim().toLowerCase();
+    if (!term) return availableWorkspaces;
+    return availableWorkspaces.filter((ws) => ws.name.toLowerCase().includes(term));
+  }, [availableWorkspaces, search]);
 
   const handleClose = () => {
-    if (isSubmitting) return
-    onOpenChange(false)
-  }
+    if (isSubmitting) return;
+    onOpenChange(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedWorkspaceId || isSubmitting) return
+    e.preventDefault();
+    if (!selectedWorkspaceId || isSubmitting) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       const result = await moveDocumentToWorkspace({
         documentId,
         targetWorkspaceId: selectedWorkspaceId,
-      })
+      });
 
       if (result.error) {
         toast({
           title: 'Erro',
           description: result.error,
           variant: 'destructive',
-        })
-        return
+        });
+        return;
       }
 
-      const targetWorkspaceId = result.data?.targetWorkspaceId ?? selectedWorkspaceId
+      const targetWorkspaceId = result.data?.targetWorkspaceId ?? selectedWorkspaceId;
 
       toast({
         title: 'Página movida',
         description: 'A página foi movida para o espaço selecionado.',
-      })
+      });
 
-      onMoved?.(targetWorkspaceId)
-      onOpenChange(false)
-      setSearch('')
-      setSelectedWorkspaceId(null)
+      onMoved?.(targetWorkspaceId);
+      onOpenChange(false);
+      setSearch('');
+      setSelectedWorkspaceId(null);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const hasOtherWorkspaces = availableWorkspaces.length > 0
+  const hasOtherWorkspaces = availableWorkspaces.length > 0;
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -109,9 +106,7 @@ export function MovePageDialog({
 
             <div className="space-y-3">
               <label className="space-y-1 text-sm">
-                <span className="text-xs font-medium text-muted-foreground">
-                  Pesquisar espaços
-                </span>
+                <span className="text-xs font-medium text-muted-foreground">Pesquisar espaços</span>
                 <Input
                   placeholder="Pesquisar espaços"
                   value={search}
@@ -137,16 +132,14 @@ export function MovePageDialog({
                 ) : (
                   <ul className="divide-y divide-border/60">
                     {filteredWorkspaces.map((ws) => {
-                      const isSelected = selectedWorkspaceId === ws.id
+                      const isSelected = selectedWorkspaceId === ws.id;
                       return (
                         <li key={ws.id}>
                           <button
                             type="button"
                             onClick={() => setSelectedWorkspaceId(ws.id)}
                             className={`flex w-full items-center justify-between px-3 py-2.5 text-sm text-left transition-smooth ${
-                              isSelected
-                                ? 'bg-primary/10 text-primary'
-                                : 'hover:bg-muted/60'
+                              isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted/60'
                             }`}
                           >
                             <span className="truncate">{ws.name}</span>
@@ -163,7 +156,7 @@ export function MovePageDialog({
                             </span>
                           </button>
                         </li>
-                      )
+                      );
                     })}
                   </ul>
                 )}
@@ -171,21 +164,12 @@ export function MovePageDialog({
             </div>
 
             <div className="flex justify-end gap-2 pt-1">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
                 Cancelar
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  !selectedWorkspaceId ||
-                  !hasOtherWorkspaces
-                }
+                disabled={isSubmitting || !selectedWorkspaceId || !hasOtherWorkspaces}
               >
                 {isSubmitting ? 'Movendo...' : 'Mover'}
               </Button>
@@ -194,6 +178,5 @@ export function MovePageDialog({
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  )
+  );
 }
-

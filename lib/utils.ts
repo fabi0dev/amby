@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function slugify(text: string): string {
@@ -14,24 +14,24 @@ export function slugify(text: string): string {
     .replace(/[^\w\-]+/g, '')
     .replace(/\-\-+/g, '-')
     .replace(/^-+/, '')
-    .replace(/-+$/, '')
+    .replace(/-+$/, '');
 }
 
 export function generateToken(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(32)))
     .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
+    .join('');
 }
 
 export function formatRecentDate(input: string | Date): string {
-  const date = new Date(input)
-  const now = new Date()
+  const date = new Date(input);
+  const now = new Date();
 
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today)
-  yesterday.setDate(yesterday.getDate() - 1)
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  const docDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const docDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
   const timeFormatted = date
     .toLocaleTimeString('pt-BR', {
@@ -39,14 +39,14 @@ export function formatRecentDate(input: string | Date): string {
       minute: '2-digit',
       hour12: true,
     })
-    .replace(/\s/g, '')
+    .replace(/\s/g, '');
 
   if (docDay.getTime() === today.getTime()) {
-    return `Hoje, ${timeFormatted}`
+    return `Hoje, ${timeFormatted}`;
   }
 
   if (docDay.getTime() === yesterday.getTime()) {
-    return `Ontem, ${timeFormatted}`
+    return `Ontem, ${timeFormatted}`;
   }
 
   return date.toLocaleDateString('pt-BR', {
@@ -54,5 +54,5 @@ export function formatRecentDate(input: string | Date): string {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  });
 }
