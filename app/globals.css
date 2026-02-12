@@ -24,29 +24,34 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
     --radius: 0.5rem;
+    --sidebar-active: 221 83% 53% / 0.12;
+    --sidebar-active-foreground: 222.2 84% 4.9%;
   }
 
-  /* Dark theme – purplish charcoal, primary blue */
+  /* Dark theme – cinzas neutros, sem bordas (conceito fluido) */
   .dark {
-    --background: 270 14% 11%;
+    --background: 220 13% 9%;
     --foreground: 0 0% 92%;
-    --card: 270 12% 9%;
+    --card: 220 12% 7%;
     --card-foreground: 0 0% 92%;
-    --popover: 270 14% 11%;
+    --popover: 220 13% 8%;
     --popover-foreground: 0 0% 92%;
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 270 10% 16%;
+    --secondary: 220 10% 14%;
     --secondary-foreground: 0 0% 92%;
-    --muted: 270 10% 16%;
-    --muted-foreground: 0 0% 68%;
-    --accent: 270 12% 18%;
+    --muted: 220 10% 14%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 220 10% 16%;
     --accent-foreground: 0 0% 92%;
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 270 10% 18%;
-    --input: 270 10% 18%;
+    --border: 0 0% 0% / 0;
+    --input: 0 0% 0% / 0;
     --ring: 217 91% 60%;
+    /* Sidebar: item ativo em azul-acinzentado suave, texto branco */
+    --sidebar-active: 217 24% 16%;
+    --sidebar-active-foreground: 0 0% 98%;
   }
 }
 
@@ -234,7 +239,9 @@
   border-radius: 0.25rem;
   border: 2px solid hsl(var(--border));
   background-color: hsl(var(--background));
-  transition: border-color 0.15s, background-color 0.15s;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
   flex-shrink: 0;
   appearance: none;
   -webkit-appearance: none;
@@ -374,12 +381,22 @@
 
 /* ========== Auth (login/register) – dark theme e animações ========== */
 @keyframes auth-gradient-shift {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.92; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.92;
+  }
 }
 @keyframes auth-glow {
-  0%, 100% { filter: blur(0) brightness(1); }
-  50% { filter: blur(1px) brightness(1.02); }
+  0%,
+  100% {
+    filter: blur(0) brightness(1);
+  }
+  50% {
+    filter: blur(1px) brightness(1.02);
+  }
 }
 @keyframes auth-fade-in-up {
   from {
@@ -406,24 +423,40 @@
 .auth-form-enter {
   animation: auth-fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-.auth-form-enter-delay-1 { animation-delay: 0.06s; }
-.auth-form-enter-delay-2 { animation-delay: 0.12s; }
-.auth-form-enter-delay-3 { animation-delay: 0.18s; }
-.auth-form-enter-delay-4 { animation-delay: 0.24s; }
-.auth-form-enter-delay-5 { animation-delay: 0.3s; }
-.auth-form-enter-delay-6 { animation-delay: 0.36s; }
-.auth-form-enter-delay-7 { animation-delay: 0.42s; }
-.auth-form-enter-delay-8 { animation-delay: 0.48s; }
-.auth-form-enter-delay-9 { animation-delay: 0.54s; }
+.auth-form-enter-delay-1 {
+  animation-delay: 0.06s;
+}
+.auth-form-enter-delay-2 {
+  animation-delay: 0.12s;
+}
+.auth-form-enter-delay-3 {
+  animation-delay: 0.18s;
+}
+.auth-form-enter-delay-4 {
+  animation-delay: 0.24s;
+}
+.auth-form-enter-delay-5 {
+  animation-delay: 0.3s;
+}
+.auth-form-enter-delay-6 {
+  animation-delay: 0.36s;
+}
+.auth-form-enter-delay-7 {
+  animation-delay: 0.42s;
+}
+.auth-form-enter-delay-8 {
+  animation-delay: 0.48s;
+}
+.auth-form-enter-delay-9 {
+  animation-delay: 0.54s;
+}
 .auth-panel-right {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 .dark .auth-panel-right {
-  background: linear-gradient(
-    180deg,
-    hsl(var(--background)) 0%,
-    hsl(222.2 84% 5.5%) 100%
-  );
+  background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(222.2 84% 5.5%) 100%);
 }
 /* Ícone do chatbot (Docspace) – entrada com leve bounce */
 @keyframes chat-dock-enter {
@@ -474,7 +507,7 @@
   .animate-stagger-in,
   .transition-smooth,
   .chat-dock-enter,
-  [class*="animate-"] {
+  [class*='animate-'] {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

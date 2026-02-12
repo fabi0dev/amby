@@ -160,7 +160,7 @@ function TreeItem({
     <div className="select-none">
       <div
         className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-smooth group cursor-pointer ${
-          isActive ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5 hover:text-primary'
+          isActive ? 'bg-sidebar-active text-sidebar-active-foreground' : 'hover:bg-sidebar-active/60 hover:text-foreground'
         }`}
         style={{ paddingLeft: `${node.depth * 14 + 6}px` }}
       >
@@ -168,7 +168,7 @@ function TreeItem({
           onClick={handleClick}
           title={node.document.title}
           className={`flex-1 min-w-0 text-left text-[13px] font-medium transition-smooth truncate block ${
-            isActive ? 'text-primary font-semibold' : 'text-foreground/90 group-hover:text-primary'
+            isActive ? 'text-sidebar-active-foreground font-semibold' : 'text-foreground/90 group-hover:text-foreground'
           }`}
         >
           {node.document.title}
@@ -178,7 +178,7 @@ function TreeItem({
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-smooth hover:bg-primary/10 hover:text-primary"
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-smooth hover:bg-sidebar-active/80 hover:text-sidebar-active-foreground"
               aria-label="Mais opções do documento"
               onClick={(e) => e.stopPropagation()}
             >

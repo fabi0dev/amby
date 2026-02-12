@@ -2,11 +2,26 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowsInSimple, ArrowsOutSimple, X } from '@phosphor-icons/react';
+import {
+  ArrowsInSimple,
+  ArrowsOutSimple,
+  DotsThree,
+  Gear,
+  Trash,
+  ClockCounterClockwise,
+  X,
+} from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { ChatWidgetProps, ChatAction, OpenDocumentAction } from './chat-types';
 import { useChatSession } from './use-chat-session';
+import type { ChatSessionSummary } from './use-chat-session';
 import { useChatApplyToDocument } from './use-chat-apply-to-document';
 import { ChatMessagesList } from './chat-messages-list';
 import { ChatInputForm } from './chat-input-form';
@@ -14,6 +29,18 @@ import { useToast } from '@/components/ui/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { createWorkspace } from '@/app/actions/workspace';
 import { createDocument } from '@/app/actions/documents';
+
+function formatSessionLabel(s: ChatSessionSummary): string {
+  const date = new Date(s.updatedAt);
+  const dateStr = date.toLocaleDateString(undefined, {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const base = s.documentTitle || s.title || s.workspaceName || 'Conversa';
+  return `${base} · ${dateStr}`;
+}
 
 export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
   const chatName = 'Assistente IA';
@@ -38,7 +65,29 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
     listRef,
     handleSend,
     handleKeyDown,
+    clearChat,
+    loadSessions,
+    switchToSession,
   } = useChatSession({ open });
+
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [historySessions, setHistorySessions] = useState<ChatSessionSummary[] | null>(null);
+  const [showHistoryList, setShowHistoryList] = useState(false);
+
+  useEffect(() => {
+    if (!optionsOpen) {
+      setHistorySessions(null);
+      setShowHistoryList(false);
+      return;
+    }
+    let cancelled = false;
+    loadSessions().then((list) => {
+      if (!cancelled) setHistorySessions(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [optionsOpen, loadSessions]);
 
   const handleOpenDocument = (payload: OpenDocumentAction) => {
     router.push(`/workspace/${payload.workspaceId}/${payload.documentId}`);
@@ -99,7 +148,7 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
   return (
     <TooltipProvider delayDuration={300}>
         <div
-          className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl transition-all duration-300 ease-smooth ${
             isExpanded
               ? 'inset-x-4 bottom-8 top-16 md:inset-x-auto md:right-10 md:bottom-10 md:top-auto md:h-[640px] md:w-[760px] md:max-w-[760px]'
               : 'bottom-6 right-6 w-full max-w-md md:max-w-lg min-h-[380px] md:min-h-[440px] max-h-[85vh]'
@@ -143,6 +192,102 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
               )}
             </div>
             <div className="flex shrink-0 items-center gap-1">
+              <DropdownMenu open={optionsOpen} onOpenChange={setOptionsOpen}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full hover:bg-muted/70"
+                        type="button"
+                        aria-label="Opções do chat"
+                      >
+                        <DotsThree size={18} weight="bold" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">Opções</TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end" className="min-w-[240px] p-0">
+                  {showHistoryList ? (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setShowHistoryList(false);
+                        }}
+                        className="border-b border-border"
+                      >
+                        <ClockCounterClockwise size={16} className="mr-2" />
+                        ← Voltar
+                      </DropdownMenuItem>
+                      <div className="max-h-[280px] overflow-y-auto p-1">
+                        {historySessions === null ? (
+                          <div className="flex items-center justify-center gap-2 px-4 py-6 text-sm text-muted-foreground">
+                            <LoadingSpinner size="sm" />
+                            Carregando…
+                          </div>
+                        ) : historySessions.length === 0 ? (
+                          <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+                            Nenhuma conversa anterior
+                          </div>
+                        ) : (
+                          historySessions.map((s) => (
+                            <DropdownMenuItem
+                              key={s.id}
+                              onSelect={() => {
+                                void switchToSession(s.id, s.workspaceId);
+                                setOptionsOpen(false);
+                              }}
+                              className="flex flex-col items-start gap-0.5 py-2 cursor-pointer"
+                            >
+                              <span className="truncate w-full text-left text-sm">
+                                {formatSessionLabel(s)}
+                              </span>
+                            </DropdownMenuItem>
+                          ))
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          clearChat();
+                          setOptionsOpen(false);
+                        }}
+                      >
+                        <Trash size={16} className="mr-2" />
+                        Limpar chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setShowHistoryList(true);
+                        }}
+                      >
+                        <ClockCounterClockwise size={16} className="mr-2" />
+                        Ver histórico
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={(e) => {
+                          e.preventDefault();
+                          setOptionsOpen(false);
+                          toast({
+                            title: 'Configurações',
+                            description: 'Opções de configuração do assistente em breve.',
+                          });
+                        }}
+                      >
+                        <Gear size={16} className="mr-2" />
+                        Configurar
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

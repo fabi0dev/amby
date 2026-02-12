@@ -1,13 +1,13 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seed...')
+  console.log('🌱 Iniciando seed...');
 
   // Criar usuário admin
-  const hashedPassword = await bcrypt.hash('admin123', 10)
+  const hashedPassword = await bcrypt.hash('admin123', 10);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@admin.com' },
@@ -18,9 +18,9 @@ async function main() {
       password: hashedPassword,
       emailVerified: new Date(),
     },
-  })
+  });
 
-  console.log('✅ Usuário admin criado:', admin.email)
+  console.log('✅ Usuário admin criado:', admin.email);
 
   // Criar workspace padrão
   const workspace = await prisma.workspace.upsert({
@@ -31,9 +31,9 @@ async function main() {
       slug: 'default',
       description: 'Workspace inicial do Amby',
     },
-  })
+  });
 
-  console.log('✅ Workspace criado:', workspace.name)
+  console.log('✅ Workspace criado:', workspace.name);
 
   // Adicionar admin como owner do workspace
   await prisma.workspaceMember.upsert({
@@ -49,14 +49,14 @@ async function main() {
       userId: admin.id,
       role: 'OWNER',
     },
-  })
+  });
 
-  console.log('✅ Admin adicionado ao workspace como OWNER')
+  console.log('✅ Admin adicionado ao workspace como OWNER');
 
   // Habilitar app Docspace no workspace (e em todos que ainda não têm nenhum app)
   const workspaces = await prisma.workspace.findMany({
     include: { workspaceApps: true },
-  })
+  });
   for (const ws of workspaces) {
     if (ws.workspaceApps.length === 0) {
       await prisma.workspaceApp.upsert({
@@ -65,8 +65,8 @@ async function main() {
         },
         update: {},
         create: { workspaceId: ws.id, appId: 'docspace', sortOrder: 0 },
-      })
-      console.log('✅ App Docspace habilitado no espaço:', ws.name)
+      });
+      console.log('✅ App Docspace habilitado no espaço:', ws.name);
     }
   }
 
@@ -104,7 +104,7 @@ async function main() {
       },
       isPublished: true,
     },
-  })
+  });
 
   // Criar entrada na árvore de documentos
   await prisma.documentTree.upsert({
@@ -119,21 +119,21 @@ async function main() {
       depth: 0,
       order: 0,
     },
-  })
+  });
 
-  console.log('✅ Documento de exemplo criado')
+  console.log('✅ Documento de exemplo criado');
 
-  console.log('🎉 Seed concluído com sucesso!')
-  console.log('\n📝 Credenciais de acesso:')
-  console.log('   Email: admin@admin.com')
-  console.log('   Senha: admin123')
+  console.log('🎉 Seed concluído com sucesso!');
+  console.log('\n📝 Credenciais de acesso:');
+  console.log('   Email: admin@admin.com');
+  console.log('   Senha: admin123');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Erro no seed:', e)
-    process.exit(1)
+    console.error('❌ Erro no seed:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

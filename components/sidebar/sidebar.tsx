@@ -72,7 +72,7 @@ export function Sidebar({
 
   if (!currentWorkspace) {
     return (
-      <div className="flex h-full w-64 flex-col bg-gradient-to-b from-background/95 via-background to-muted/20 border-r border-border/40 animate-fade-in">
+      <div className="flex h-full w-64 flex-col bg-gradient-to-b from-card via-background to-background border-r border-border/40 animate-fade-in">
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-4">
           <p className="text-sm text-muted-foreground max-w-[14rem]">
             Selecione um workspace no header para acessar o Docspace.
@@ -83,7 +83,7 @@ export function Sidebar({
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-background/95 via-background to-muted/20 border-r border-border/40 animate-fade-in">
+    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-card via-background to-background border-r border-border/40 animate-fade-in">
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
           <div className="flex flex-col flex-1 min-h-0 pt-2 space-y-4 animate-fade-in-up">

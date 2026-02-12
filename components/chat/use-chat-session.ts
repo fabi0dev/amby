@@ -1,9 +1,35 @@
 import type React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWorkspaceStore } from '@/stores/workspace-store';
 import { useDocumentStore } from '@/stores/document-store';
 import { useWorkspaces } from '@/hooks/use-workspaces';
 import type { ChatMessage } from './chat-types';
+
+const INACTIVITY_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 horas
+const CHAT_STORAGE_KEY = 'docmost_chat_last_session';
+
+const WELCOME_MESSAGE: ChatMessage = {
+  id: 'welcome',
+  role: 'assistant',
+  content: 'Olá!',
+  createdAt: new Date(),
+};
+
+export interface ChatSessionSummary {
+  id: string;
+  workspaceId: string;
+  workspaceName: string;
+  documentId: string | null;
+  documentTitle: string | null;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface StoredSession {
+  sessionId: string;
+  workspaceId: string;
+}
 
 interface UseChatSessionProps {
   open: boolean;
@@ -25,6 +51,12 @@ interface UseChatSessionReturn {
   listRef: React.RefObject<HTMLDivElement>;
   handleSend: (overrideText?: string) => Promise<void>;
   handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement>;
+  /** Limpa o chat atual e inicia nova conversa. */
+  clearChat: () => void;
+  /** Lista sessões para histórico. */
+  loadSessions: () => Promise<ChatSessionSummary[]>;
+  /** Troca para uma sessão do histórico. */
+  switchToSession: (sessionId: string, workspaceId: string) => Promise<void>;
 }
 
 export function useChatSession({ open }: UseChatSessionProps): UseChatSessionReturn {
@@ -34,20 +66,32 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
   const firstWorkspace = workspaces[0];
 
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: 'Olá!',
-      createdAt: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contextDetached, setContextDetached] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+
+  const saveLastSession = useCallback((id: string, workspaceId: string) => {
+    try {
+      localStorage.setItem(
+        CHAT_STORAGE_KEY,
+        JSON.stringify({ sessionId: id, workspaceId } satisfies StoredSession),
+      );
+    } catch {
+      // localStorage indisponível
+    }
+  }, []);
+
+  const clearStoredSession = useCallback(() => {
+    try {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+    } catch {
+      // localStorage indisponível
+    }
+  }, []);
 
   const subtitle = useMemo(() => {
     if (error) {
@@ -68,6 +112,32 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
   // Workspace para criar sessão: o selecionado ou o primeiro disponível (chat geral)
   const workspaceForSession = currentWorkspace ?? firstWorkspace;
 
+  const loadMessagesForSession = useCallback(
+    async (id: string) => {
+      const messagesRes = await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
+        method: 'GET',
+      });
+      if (!messagesRes.ok) {
+        const data = await messagesRes.json().catch(() => ({}));
+        throw new Error(
+          (data as any)?.error || 'Não foi possível carregar o histórico de mensagens.',
+        );
+      }
+      const data = await messagesRes.json();
+      const mapped: ChatMessage[] = (data as any[]).map((m: any) => ({
+        id: m.id,
+        role: m.role === 'USER' ? 'user' : 'assistant',
+        content: m.content,
+        createdAt: new Date(m.createdAt),
+      }));
+      if (mapped.length === 0) {
+        mapped.push({ ...WELCOME_MESSAGE, createdAt: new Date() });
+      }
+      setMessages(mapped);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!open) return;
     if (!workspaceForSession) return;
@@ -77,61 +147,69 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
         setIsLoading(true);
         setError(null);
 
-        let id = sessionId;
+        let id: string | null = sessionId;
 
         if (!id) {
-          const res = await fetch('/api/docspace/chat/sessions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              workspaceId: workspaceForSession.id,
-              documentId: contextDetached ? null : (currentDocument?.id ?? null),
-              title: currentDocument?.title ?? null,
-            }),
-          });
-
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(
-              (data as any)?.error ||
-                'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
-            );
+          let stored: StoredSession | null = null;
+          try {
+            const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+            if (raw) stored = JSON.parse(raw) as StoredSession;
+          } catch {
+            // ignora
           }
 
-          const data = await res.json();
-          id = (data as any).id as string;
-          setSessionId(id);
+          const workspaceId = workspaceForSession.id;
+          const now = Date.now();
+          const cutoff = now - INACTIVITY_THRESHOLD_MS;
+
+          if (stored?.sessionId && stored.workspaceId === workspaceId) {
+            const listRes = await fetch('/api/docspace/chat/sessions');
+            if (listRes.ok) {
+              const list = (await listRes.json()) as any[];
+              const found = list.find(
+                (s: any) =>
+                  s.id === stored!.sessionId && s.workspaceId === workspaceId,
+              );
+              if (found) {
+                const updatedAt = new Date(found.updatedAt).getTime();
+                if (updatedAt > cutoff) {
+                  id = found.id;
+                  setSessionId(id);
+                  saveLastSession(id, workspaceId);
+                }
+              }
+            }
+          }
+
+          if (!id) {
+            const res = await fetch('/api/docspace/chat/sessions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                workspaceId,
+                documentId: contextDetached ? null : (currentDocument?.id ?? null),
+                title: currentDocument?.title ?? null,
+              }),
+            });
+
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}));
+              throw new Error(
+                (data as any)?.error ||
+                  'Não foi possível criar a sessão de chat. Verifique se você tem acesso ao workspace.',
+              );
+            }
+
+            const data = await res.json();
+            id = (data as any).id as string;
+            setSessionId(id);
+            saveLastSession(id, workspaceId);
+          }
         }
 
-        const messagesRes = await fetch(`/api/docspace/chat/sessions/${id}/messages`, {
-          method: 'GET',
-        });
-
-        if (!messagesRes.ok) {
-          const data = await messagesRes.json().catch(() => ({}));
-          throw new Error(
-            (data as any)?.error || 'Não foi possível carregar o histórico de mensagens.',
-          );
+        if (id) {
+          await loadMessagesForSession(id);
         }
-
-        const data = await messagesRes.json();
-        const mapped: ChatMessage[] = (data as any[]).map((m) => ({
-          id: m.id,
-          role: m.role === 'USER' ? 'user' : 'assistant',
-          content: m.content,
-          createdAt: new Date(m.createdAt),
-        }));
-
-        if (mapped.length === 0) {
-          mapped.push({
-            id: 'welcome',
-            role: 'assistant',
-            content: 'Olá!',
-            createdAt: new Date(),
-          });
-        }
-
-        setMessages(mapped);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Ocorreu um erro ao inicializar o chat.';
@@ -163,6 +241,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     currentDocument?.title,
     sessionId,
     contextDetached,
+    loadMessagesForSession,
+    saveLastSession,
   ]);
 
   const handleSend = async (overrideText?: string) => {
@@ -349,6 +429,39 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     }).catch(() => {});
   }, [sessionId, contextDetached, currentDocument?.id]);
 
+  const clearChat = useCallback(() => {
+    setSessionId(null);
+    setMessages([{ ...WELCOME_MESSAGE, createdAt: new Date() }]);
+    setError(null);
+    clearStoredSession();
+  }, [clearStoredSession]);
+
+  const loadSessions = useCallback(async (): Promise<ChatSessionSummary[]> => {
+    const res = await fetch('/api/docspace/chat/sessions');
+    if (!res.ok) return [];
+    const list = (await res.json()) as any[];
+    return list.map((s: any) => ({
+      id: s.id,
+      workspaceId: s.workspaceId,
+      workspaceName: s.workspace?.name ?? '',
+      documentId: s.documentId ?? null,
+      documentTitle: s.document?.title ?? null,
+      title: s.title ?? null,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    }));
+  }, []);
+
+  const switchToSession = useCallback(
+    async (targetSessionId: string, workspaceId: string) => {
+      setError(null);
+      setSessionId(targetSessionId);
+      saveLastSession(targetSessionId, workspaceId);
+      await loadMessagesForSession(targetSessionId);
+    },
+    [loadMessagesForSession, saveLastSession],
+  );
+
   return {
     messages,
     setMessages,
@@ -363,5 +476,8 @@ export function useChatSession({ open }: UseChatSessionProps): UseChatSessionRet
     listRef,
     handleSend,
     handleKeyDown,
+    clearChat,
+    loadSessions,
+    switchToSession,
   };
 }
