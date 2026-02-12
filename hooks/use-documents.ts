@@ -13,11 +13,13 @@ export function useDocuments(workspaceId: string) {
   })
 }
 
-export function useDocumentTree(workspaceId: string) {
+export function useDocumentTree(workspaceId: string, projectId?: string | null) {
   return useQuery({
-    queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+    queryKey: queryKeys.documents.tree(workspaceId, projectId).queryKey,
     queryFn: async () => {
-      const res = await fetch(`/api/documents/tree?workspaceId=${workspaceId}`)
+      const params = new URLSearchParams({ workspaceId })
+      if (projectId) params.set('projectId', projectId)
+      const res = await fetch(`/api/documents/tree?${params}`)
       if (!res.ok) throw new Error('Erro ao buscar árvore de documentos')
       return res.json()
     },

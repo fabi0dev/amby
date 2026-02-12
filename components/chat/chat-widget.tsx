@@ -68,13 +68,13 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
           title: action.title,
         });
         if (result.data) {
-          toast({ title: 'Página criada' });
+          toast({ title: 'Documento criado' });
           router.push(`/workspace/${action.workspaceId}/${result.data.id}`);
           onOpenChange(false);
         } else {
           toast({
             title: 'Erro',
-            description: result.error ?? 'Não foi possível criar a página',
+            description: result.error ?? 'Não foi possível criar o documento',
             variant: 'destructive',
           });
         }
@@ -97,14 +97,7 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
   if (!open) return null;
 
   return (
-    <>
-      <div
-        className="fixed inset-0 z-40 bg-background/60 backdrop-blur-sm animate-fade-in"
-        aria-hidden
-        onClick={() => onOpenChange(false)}
-      />
-
-      <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={300}>
         <div
           className={`fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isExpanded
@@ -226,6 +219,5 @@ export function ChatWidget({ open, onOpenChange }: ChatWidgetProps) {
           )}
         </div>
       </TooltipProvider>
-    </>
   );
 }

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { MainLayoutContent } from './main-layout-content';
 import { Toaster } from '@/components/ui/toaster';
 import { SearchModal } from '@/components/search/search-modal';
-import { ChatDock } from '@/components/chat/chat-dock';
 import { useUIStore } from '@/stores/ui-store';
 
 interface MainLayoutProps {
@@ -48,7 +47,6 @@ export function MainLayout({ children }: MainLayoutProps) {
     <>
       <div className="flex h-screen flex-col bg-background overflow-hidden">
         <MainLayoutContent onSearchOpen={setSearchOpen}>{children}</MainLayoutContent>
-        <ChatDock />
         <Toaster />
       </div>
 

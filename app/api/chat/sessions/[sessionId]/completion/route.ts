@@ -89,15 +89,15 @@ const INTENT_CLASSIFICATION_SYSTEM = `Você classifica a intenção do usuário 
 
 REGRAS CRÍTICAS DE CONTEXTO:
 - Se o usuário pede INFORMAÇÃO ou CONTEÚDO (credenciais, dados, "mostre as credenciais", "quais as credenciais", "quais as informações", "onde está X", "me diga X") → use sempre "chat". O sistema vai buscar nos documentos e responder com o conteúdo. NUNCA use open_document nem metric_question para isso.
-- metric_question: SOMENTE quando a pergunta é EXPLICITAMENTE sobre NÚMERO/QUANTIDADE: "quantos documentos?", "quantos workspaces?", "quantas páginas?". Se a pergunta é sobre o conteúdo (ex: "quais as credenciais") → "chat".
-- open_document: SOMENTE quando o usuário quer ABRIR o documento NO EDITOR (navegar para a página). Ex: "abrir esse doc", "abra o documento Credenciais no editor", "mostre o documento X" (no sentido de abrir a página). "Mostre as credenciais" ou "mostre as informações" é pedido de CONTEÚDO → "chat".
+- metric_question: SOMENTE quando a pergunta é EXPLICITAMENTE sobre NÚMERO/QUANTIDADE: "quantos documentos?", "quantos workspaces?". Se a pergunta é sobre o conteúdo (ex: "quais as credenciais") → "chat".
+- open_document: SOMENTE quando o usuário quer ABRIR o documento NO EDITOR (navegar para a documento). Ex: "abrir esse doc", "abra o documento Credenciais no editor", "mostre o documento X" (no sentido de abrir o documento). "Mostre as credenciais" ou "mostre as informações" é pedido de CONTEÚDO → "chat".
 
 Intenções:
 - chat: perguntas sobre conteúdo, listar informações, credenciais, URLs, "mostre X", "quais são", "onde está", dúvidas gerais. Use na dúvida.
-- open_document: usuário pede para abrir/navegar para um documento no editor. Só use se ficar claro que ele quer "abrir a página", não "ver o conteúdo". Preencha documentTitle se tiver nome ou inferir do contexto.
+- open_document: usuário pede para abrir/navegar para um documento no editor. Só use se ficar claro que ele quer "abrir a documento", não "ver o conteúdo". Preencha documentTitle se tiver nome ou inferir do contexto.
 - edit_document: pedido explícito de editar/organizar/reescrever o documento atual ("organize esse texto", "reescreva", "aplique no documento").
 - create_workspace: "criar workspace", "novo workspace". name opcional.
-- create_document: "criar página", "criar documento", "nova página". title opcional.
+- create_document: "criar documento", "criar documento", "novo documento". title opcional.
 - metric_question: APENAS "quantos documentos" ou "quantos workspaces". metric: "workspace_count" ou "document_count".
 
 Resposta (só JSON):
@@ -161,8 +161,8 @@ async function classifyChatIntent(params: {
         intent: 'create_document',
         title:
           typeof parsed.title === 'string'
-            ? parsed.title.trim().slice(0, 200) || 'Nova Página'
-            : 'Nova Página',
+            ? parsed.title.trim().slice(0, 200) || 'Novo Documento'
+            : 'Novo Documento',
       };
     }
     if (normalized === 'metric_question') {
@@ -400,39 +400,39 @@ async function buildDocumentsContext(params: {
   const whereByKeywords =
     keywords.length > 0
       ? {
-          OR: keywords.map((term) => ({
-            OR: [
-              {
-                title: {
-                  contains: term,
-                  mode: 'insensitive',
-                },
-              },
-              {
-                content: {
-                  contains: term,
-                  mode: 'insensitive',
-                },
-              },
-            ],
-          })),
-        }
-      : {
+        OR: keywords.map((term) => ({
           OR: [
             {
               title: {
-                contains: queryForSearch,
+                contains: term,
                 mode: 'insensitive',
               },
             },
             {
               content: {
-                contains: queryForSearch,
+                contains: term,
                 mode: 'insensitive',
               },
             },
           ],
-        };
+        })),
+      }
+      : {
+        OR: [
+          {
+            title: {
+              contains: queryForSearch,
+              mode: 'insensitive',
+            },
+          },
+          {
+            content: {
+              contains: queryForSearch,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      };
 
   const baseWhere: any = {
     document: {
@@ -445,24 +445,24 @@ async function buildDocumentsContext(params: {
   const [currentDocMatches, otherDocsMatches] = await Promise.all([
     documentId
       ? prisma.documentFullText.findMany({
-          where: {
-            ...baseWhere,
-            documentId,
-          },
-          select: {
-            documentId: true,
-            title: true,
-            content: true,
-          },
-          take: 3,
-        })
+        where: {
+          ...baseWhere,
+          documentId,
+        },
+        select: {
+          documentId: true,
+          title: true,
+          content: true,
+        },
+        take: 3,
+      })
       : Promise.resolve([]),
     prisma.documentFullText.findMany({
       where: documentId
         ? {
-            ...baseWhere,
-            documentId: { not: documentId },
-          }
+          ...baseWhere,
+          documentId: { not: documentId },
+        }
         : baseWhere,
       select: {
         documentId: true,
@@ -631,10 +631,10 @@ export async function POST(request: NextRequest, { params }: { params: { session
     const classified =
       lastUserMessage != null
         ? await classifyChatIntent({
-            lastUserMessage: lastUserMessage.content,
-            lastAssistantMessage,
-            apiKey,
-          })
+          lastUserMessage: lastUserMessage.content,
+          lastAssistantMessage,
+          apiKey,
+        })
         : ({ intent: 'chat' as const } satisfies ClassifiedIntent);
 
     const isEditRequest = classified.intent === 'edit_document' && !!chatSession.documentId;
@@ -809,7 +809,6 @@ export async function POST(request: NextRequest, { params }: { params: { session
       return NextResponse.json({ message: noDocMessage });
     }
 
-    // Ações diretas: criar workspace ou página
     if (lastUserMessage && classified.intent === 'create_workspace') {
       const name = classified.name ?? 'Novo Workspace';
       const msg = `Posso criar o workspace **${name}** para você. Use o botão abaixo para confirmar.`;
@@ -833,9 +832,9 @@ export async function POST(request: NextRequest, { params }: { params: { session
     }
 
     if (lastUserMessage && classified.intent === 'create_document') {
-      const title = classified.title ?? 'Nova Página';
+      const title = classified.title ?? 'Novo Documento';
       if (chatSession.workspaceId) {
-        const msg = `Posso criar a página **${title}** neste workspace. Use o botão abaixo para confirmar.`;
+        const msg = `Posso criar o documento **${title}** neste workspace. Use o botão abaixo para confirmar.`;
         await prisma.chatMessage.create({
           data: {
             sessionId: chatSession.id,
@@ -859,7 +858,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
         });
       }
       const msg =
-        'Para criar uma página, selecione um workspace primeiro (por exemplo, abra um workspace na barra lateral) e peça novamente.';
+        'Para criar um documento, selecione um workspace primeiro (por exemplo, abra um workspace na barra lateral) e peça novamente.';
       await prisma.chatMessage.create({
         data: {
           sessionId: chatSession.id,
@@ -907,8 +906,8 @@ export async function POST(request: NextRequest, { params }: { params: { session
           'Se o usuário pedir para consultar documentação ou algo dos workspaces dele, sugira que ele selecione um workspace ou documento na barra lateral para que você possa usar esse contexto.',
       });
     } else if (isEditRequest && chatSession.documentId) {
-      const document = await prisma.document.findUnique({
-        where: { id: chatSession.documentId },
+      const document = await prisma.document.findFirst({
+        where: { id: chatSession.documentId, deletedAt: null },
       });
 
       if (document) {
@@ -930,10 +929,10 @@ export async function POST(request: NextRequest, { params }: { params: { session
       documentsContext =
         !generalChat && lastUserMessage
           ? await buildDocumentsContext({
-              userId: session.user.id,
-              documentId: chatSession.documentId,
-              userQuery: lastUserMessage.content,
-            })
+            userId: session.user.id,
+            documentId: chatSession.documentId,
+            userQuery: lastUserMessage.content,
+          })
           : null;
 
       isSensitiveQuestion =
@@ -947,7 +946,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
             'Foram encontrados trechos da documentação dos workspaces do usuário relevantes à pergunta. ' +
             'Cada trecho começa com "Título: NOME_DA_PAGINA". Quando você usar uma informação específica vinda desses trechos (por exemplo: credenciais, URLs, configurações, passos de processo), ' +
             'deixe CLARO em qual documento essa informação está, mencionando o título exatamente como aparece após "Título:". ' +
-            'Exemplo: "Esta informação está documentada na página **Credenciais Axis Admin**".',
+            'Exemplo: "Esta informação está documentada no documento **XXXXX**".',
         });
 
         // Regras mais rígidas para perguntas sensíveis (credenciais / URLs internas)
@@ -985,7 +984,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
             'Sua pergunta envolve credenciais, informações de acesso ou URLs internas, ' +
             'mas não encontrei nenhum trecho na documentação dos seus workspaces que contenha esses dados. ' +
             'Por segurança, não posso inventar ou supor usuários, senhas, URLs ou domínios. ' +
-            'Se houver uma página da sua documentação que contenha essas informações, abra ou compartilhe essa página para que eu possa usá-la como fonte.';
+            'Se houver um documento da sua documentação que contenha essas informações, abra ou compartilhe esse documento para que eu possa usá-lo como fonte.';
 
           await prisma.chatMessage.create({
             data: {
@@ -1056,7 +1055,7 @@ export async function POST(request: NextRequest, { params }: { params: { session
           'Analisei a sua pergunta e também a documentação disponível neste workspace, ' +
           'mas **não encontrei** nos trechos de documentação nenhuma credencial, usuário, senha ou URL que responda exatamente ao que você pediu. ' +
           'Por segurança, não posso inventar ou supor esses dados. ' +
-          'Se houver outra página da sua documentação que contenha essas informações, abra ou compartilhe esse documento para que eu possa usá-lo como fonte.';
+          'Se houver outro documento da sua documentação que contenha essas informações, abra ou compartilhe esse documento para que eu possa usá-lo como fonte.';
       }
     }
 

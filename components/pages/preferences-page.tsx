@@ -49,10 +49,9 @@ export function PreferencesPage() {
             </select>
           </SettingsSectionCard>
 
-          {/* Usar largura total da página */}
-          <SettingsSectionCard title="Usar largura total da página">
+          <SettingsSectionCard title="Usar largura total do documento">
             <p className="text-sm text-muted-foreground mb-3">
-              Escolha a largura preferida da página.
+              Escolha a largura preferida do documento.
             </p>
             <button
               type="button"
@@ -73,10 +72,9 @@ export function PreferencesPage() {
             </button>
           </SettingsSectionCard>
 
-          {/* Modo de edição de página padrão */}
-          <SettingsSectionCard title="Modo de edição de página padrão">
+          <SettingsSectionCard title="Modo de edição de documento padrão">
             <p className="text-sm text-muted-foreground mb-3">
-              Escolha o modo de edição de página preferido. Evite edições acidentais.
+              Escolha o modo de edição de documento preferido. Evite edições acidentais.
             </p>
             <div className="flex rounded-md border border-input bg-muted/30 p-0.5 w-fit">
               {(['edit', 'read'] as const).map((mode) => (

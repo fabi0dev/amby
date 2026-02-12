@@ -71,15 +71,15 @@ export function HomePage({
     try {
       const result = await createDocument({
         workspaceId,
-        title: 'Nova Página',
+        title: 'Novo Documento',
       });
       if (result.data) {
-        toast({ title: 'Página criada' });
+        toast({ title: 'Documento criado' });
         router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`);
       } else {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível criar a página',
+          description: result.error ?? 'Não foi possível criar o documento',
           variant: 'destructive',
         });
       }
@@ -117,7 +117,7 @@ export function HomePage({
             </p>
             <h1 className="text-2xl font-semibold text-foreground">Olá, {userName}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Acesse rapidamente seus espaços e páginas recentes.
+              Acesse rapidamente seus espaços e documentos recentes.
             </p>
           </header>
 
@@ -148,7 +148,7 @@ export function HomePage({
                 {workspaces.map((workspace) => (
                   <Link
                     key={workspace.id}
-                    href={`/workspace/${workspace.id}`}
+                    href={`/w/${workspace.id}`}
                     className="group flex flex-col rounded-xl border bg-card/80 px-4 py-4 hover:bg-primary/5 hover:border-primary/40 transition-smooth focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export function HomePage({
                           {workspace.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {workspace.documents.length} página
+                          {workspace.documents.length} documento
                           {workspace.documents.length !== 1 ? 's' : ''} • espaço
                         </p>
                       </div>
@@ -186,7 +186,7 @@ export function HomePage({
             <div className="px-6 pb-10 md:px-8">
               {visibleRecentDocuments.length === 0 ? (
                 <p className="text-muted-foreground text-sm text-center">
-                  Nenhuma página recente ainda. Crie uma nova página para começar.
+                  Nenhum documento recente ainda. Crie um novo documento para começar.
                 </p>
               ) : (
                 <ul className="space-y-0 divide-y divide-border/60">
@@ -237,7 +237,7 @@ export function HomePage({
             id: workspace.id,
             name: workspace.name,
           } as any);
-          router.push(`/workspace/${workspace.id}`);
+          router.push(`/w/${workspace.id}`);
         }}
       />
     </div>

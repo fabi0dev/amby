@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Editor } from '@/components/editor/editor';
 import { WorkspaceOverview } from '@/components/pages/workspace-overview';
+import { DocspaceHomeView } from '@/apps/docspace/components/docspace-home-view';
+import { ProjectOverview } from '@/apps/docspace/components/project-overview';
 import {
   FloatingPageList,
   SIDEBAR_PANEL_WIDTH,
@@ -25,23 +28,52 @@ function LoadingPlaceholder({ message = 'Carregando...' }: { message?: string })
   );
 }
 
+/** Extrai projectId da URL /workspace/[workspaceId]/project/[projectId] */
+function getProjectIdFromPath(pathname: string, workspaceId: string): string | null {
+  const prefix = `/workspace/${workspaceId}/project/`;
+  if (!pathname.startsWith(prefix)) return null;
+  const rest = pathname.slice(prefix.length);
+  const segment = rest.split('/')[0];
+  return segment && segment !== 'overview' ? segment : null;
+}
+
+/** Verifica se a rota é a raiz do workspace (home do docspace, sem projeto) */
+function isWorkspaceRoot(pathname: string, workspaceId: string): boolean {
+  const root = `/workspace/${workspaceId}`;
+  return pathname === root || pathname === `${root}/`;
+}
+
 export function WorkspaceLayout({
   workspaceId,
   documentId,
+  projectId: projectIdProp,
 }: {
   workspaceId: string;
   documentId?: string;
+  projectId?: string;
 }) {
+  const pathname = usePathname();
+  const projectIdFromPath = getProjectIdFromPath(pathname ?? '', workspaceId);
+
   const { data: workspace, isLoading: isLoadingWorkspace } = useWorkspace(workspaceId);
   const { data: document, isLoading: isLoadingDocument } = useDocument(
     workspaceId,
     documentId || '',
   );
-  const { setCurrentWorkspace } = useWorkspaceStore();
+  const { setCurrentWorkspace, setLastProjectIdForWorkspace } = useWorkspaceStore();
   const { setCurrentDocument } = useDocumentStore();
+
+  const projectId = projectIdProp ?? projectIdFromPath ?? document?.projectId ?? null;
 
   const isLoading = isLoadingWorkspace || (!!documentId && isLoadingDocument);
   const [pageListOpen, setPageListOpen] = useState(true);
+
+  // Persiste o projeto atual quando estiver em rota de projeto ou em um documento do projeto
+  useEffect(() => {
+    if (!workspaceId) return;
+    const effective = projectIdFromPath ?? document?.projectId ?? null;
+    if (effective) setLastProjectIdForWorkspace(workspaceId, effective);
+  }, [workspaceId, projectIdFromPath, document?.projectId, setLastProjectIdForWorkspace]);
 
   useEffect(() => {
     if (workspace) {
@@ -49,7 +81,6 @@ export function WorkspaceLayout({
     }
   }, [workspace, setCurrentWorkspace]);
 
-  // Sincronizar store com o documento da URL: ao trocar de página, usar sempre os dados do cache/API
   useEffect(() => {
     if (!documentId) {
       setCurrentDocument(null);
@@ -61,6 +92,20 @@ export function WorkspaceLayout({
       setCurrentDocument(null);
     }
   }, [documentId, document, setCurrentDocument]);
+
+  const isOverviewPage = pathname?.endsWith('/overview');
+  const isProjectPage = !!projectId && !documentId;
+  const showSidebar = !!documentId;
+
+  const mainContent = documentId ? (
+    <Editor />
+  ) : isProjectPage ? (
+    <ProjectOverview workspaceId={workspaceId} projectId={projectId!} />
+  ) : isOverviewPage ? (
+    <WorkspaceOverview workspaceId={workspaceId} onlyWithoutProject />
+  ) : (
+    <DocspaceHomeView workspaceId={workspaceId} />
+  );
 
   if (isLoading) {
     return (
@@ -76,21 +121,28 @@ export function WorkspaceLayout({
 
   return (
     <div className="relative flex h-full w-full overflow-hidden animate-fade-in">
-      {workspace && (
+      {workspace && showSidebar && (
         <FloatingPageList
           workspaceId={workspaceId}
           workspaceName={workspace.name}
           open={pageListOpen}
           onOpenChange={setPageListOpen}
+          projectId={projectId}
         />
       )}
+
       <div
         className="flex-1 overflow-hidden flex flex-col min-w-0 transition-[margin] duration-300 ease-out"
         style={{
-          marginLeft: pageListOpen ? SIDEBAR_PANEL_WIDTH : FLOATING_BUTTON_OFFSET,
+          marginLeft:
+            showSidebar && pageListOpen
+              ? SIDEBAR_PANEL_WIDTH
+              : showSidebar
+                ? FLOATING_BUTTON_OFFSET
+                : 0,
         }}
       >
-        {documentId ? <Editor /> : <WorkspaceOverview workspaceId={workspaceId} />}
+        {mainContent}
       </div>
     </div>
   );

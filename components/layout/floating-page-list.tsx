@@ -1,20 +1,20 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { List, CaretLeft, CaretDown, Check, Plus } from '@phosphor-icons/react';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { List, CaretLeft, CaretDown, Check, Folder, FileText } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { DocumentTree } from '@/components/tree/document-tree';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
+import { useProjects } from '@/hooks/use-projects';
 import { useWorkspaceStore } from '@/stores/workspace-store';
-import { useWorkspaces } from '@/hooks/use-workspaces';
-import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
 export const SIDEBAR_PANEL_WIDTH = 280;
@@ -28,6 +28,7 @@ interface FloatingPageListProps {
   workspaceName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  projectId?: string | null;
 }
 
 export function FloatingPageList({
@@ -35,17 +36,28 @@ export function FloatingPageList({
   workspaceName,
   open,
   onOpenChange,
+  projectId,
 }: FloatingPageListProps) {
   const router = useRouter();
-  const { setCurrentWorkspace } = useWorkspaceStore();
-  const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
-  const { toast } = useToast();
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
+  const setLastProjectIdForWorkspace = useWorkspaceStore((s) => s.setLastProjectIdForWorkspace);
+  const { data: projects = [], isLoading } = useProjects(workspaceId);
 
-  const handleSwitchWorkspace = (id: string, name: string) => {
-    setCurrentWorkspace({ id, name } as { id: string; name: string });
-    router.push(`/workspace/${id}`);
-  };
+  const currentProject = projectId
+    ? projects.find((p: { id: string }) => p.id === projectId)
+    : null;
+
+  const panelLabel = currentProject ? currentProject.name : projectId ? 'Projeto' : 'Projetos';
+
+  const { data: hasUnassignedDocuments = false } = useQuery({
+    queryKey: ['documents-has-no-project', workspaceId],
+    queryFn: async () => {
+      const res = await fetch(`/api/documents/tree?workspaceId=${workspaceId}`);
+      if (!res.ok) return false;
+      const tree = await res.json();
+      return tree.some((n: { document: { projectId?: string | null } }) => !n.document?.projectId);
+    },
+    enabled: !!workspaceId,
+  });
 
   return (
     <>
@@ -64,7 +76,7 @@ export function FloatingPageList({
             top: TOP_BAR_OFFSET + 12,
             left: 12,
           }}
-          aria-label="Abrir lista de páginas"
+          aria-label="Abrir lista de documentos"
         >
           <List size={22} weight="bold" />
         </Button>
@@ -82,7 +94,7 @@ export function FloatingPageList({
         }}
       >
         <div className="flex flex-1 flex-col min-h-0">
-          <div className="flex shrink-0 flex-col gap-1 border-b border-border px-3 py-3">
+          <div className="flex shrink-0 flex-col gap-1  border-border px-3 py-3">
             <div className="flex items-center justify-between gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -92,38 +104,62 @@ export function FloatingPageList({
                       'flex min-w-0 flex-1 items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm font-medium transition-colors',
                       'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
                     )}
-                    disabled={isLoadingWorkspaces}
+                    disabled={isLoading}
                   >
-                    <span className="truncate">
-                      {isLoadingWorkspaces ? 'Carregando...' : workspaceName}
-                    </span>
+                    <Folder size={16} className="shrink-0 text-muted-foreground" />
+                    <span className="truncate">{isLoading ? 'Carregando...' : panelLabel}</span>
                     <CaretDown size={14} className="shrink-0 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="min-w-[12rem] max-w-[14rem]">
-                  {workspaces.map((w) => (
-                    <DropdownMenuItem
-                      key={w.id}
-                      onClick={() => handleSwitchWorkspace(w.id, w.name)}
+                  {hasUnassignedDocuments && (
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/workspace/${workspaceId}/overview`}
+                        className="gap-2"
+                        onClick={() => {
+                          setLastProjectIdForWorkspace(workspaceId, null);
+                          onOpenChange(false);
+                        }}
+                      >
+                        <FileText size={14} className="shrink-0" />
+                        <span>Documentos sem projeto</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {projects.map((p: { id: string; name: string }) => (
+                    <DropdownMenuItem key={p.id} asChild>
+                      <Link
+                        href={`/workspace/${workspaceId}/project/${p.id}`}
+                        className="gap-2"
+                        onClick={() => onOpenChange(false)}
+                      >
+                        {projectId === p.id ? (
+                          <Check size={14} className="shrink-0" />
+                        ) : (
+                          <span className="w-[14px] shrink-0" />
+                        )}
+                        <span className="truncate">{p.name}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/workspace/${workspaceId}`}
                       className="gap-2"
+                      onClick={() => {
+                        setLastProjectIdForWorkspace(workspaceId, null);
+                        onOpenChange(false);
+                      }}
                     >
-                      {workspaceId === w.id ? (
+                      {!projectId ? (
                         <Check size={14} className="shrink-0" />
                       ) : (
                         <span className="w-[14px] shrink-0" />
                       )}
-                      <span className="truncate">{w.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                  {workspaces.length === 0 && !isLoadingWorkspaces && (
-                    <DropdownMenuItem disabled>Nenhum workspace disponível</DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => setIsCreateWorkspaceOpen(true)}
-                    className="mt-1 gap-2 border-t pt-2 text-sm"
-                  >
-                    <Plus size={14} className="shrink-0" />
-                    <span className="leading-snug">Novo workspace</span>
+                      <span>Todos os projetos</span>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -140,20 +176,14 @@ export function FloatingPageList({
             </div>
           </div>
           <div className="flex-1 min-h-0 overflow-hidden p-3 pt-0">
-            <DocumentTree workspaceId={workspaceId} workspaceName={workspaceName} />
+            <DocumentTree
+              workspaceId={workspaceId}
+              workspaceName={workspaceName}
+              projectId={projectId}
+            />
           </div>
         </div>
       </div>
-
-      <CreateWorkspaceDialog
-        open={isCreateWorkspaceOpen}
-        onOpenChange={setIsCreateWorkspaceOpen}
-        onCreated={(workspace) => {
-          toast({ title: 'Workspace criado' });
-          setCurrentWorkspace({ id: workspace.id, name: workspace.name });
-          router.push(`/workspace/${workspace.id}`);
-        }}
-      />
     </>
   );
 }

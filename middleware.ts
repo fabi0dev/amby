@@ -8,15 +8,20 @@ import { NextResponse } from 'next/server'
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token
+    const pathname = req.nextUrl.pathname
+
     const isAuthPage =
-      req.nextUrl.pathname.startsWith('/login') ||
-      req.nextUrl.pathname.startsWith('/register')
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/register')
+
+    // Rotas públicas (não exigem login)
+    const isPublicSharePage = pathname.startsWith('/share')
 
     if (isAuthPage && token) {
       return NextResponse.redirect(new URL('/', req.url))
     }
 
-    if (!isAuthPage && !token) {
+    if (!isAuthPage && !isPublicSharePage && !token) {
       return NextResponse.redirect(new URL('/login', req.url))
     }
 

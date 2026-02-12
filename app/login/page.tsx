@@ -16,6 +16,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromRegister = searchParams.get('registered') === '1';
+  const callback = searchParams.get('callback');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -42,7 +43,7 @@ function LoginForm() {
       if (result?.error) {
         setError('E-mail ou senha inválidos. Tente novamente.');
       } else {
-        router.push('/home');
+        router.push(callback || '/dashboard');
       }
     } catch {
       setError('Erro ao fazer login. Tente novamente.');

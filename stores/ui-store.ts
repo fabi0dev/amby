@@ -15,6 +15,8 @@ interface UIState {
   setTreeOpen: (open: boolean) => void
   searchOpen: boolean
   setSearchOpen: (open: boolean) => void
+  chatOpen: boolean
+  setChatOpen: (open: boolean) => void
   fullWidth: boolean
   setFullWidth: (value: boolean) => void
   defaultPageEditMode: DefaultPageEditMode
@@ -78,6 +80,8 @@ export const useUIStore = create<UIState>((set) => ({
   setTreeOpen: (open) => set({ treeOpen: open }),
   searchOpen: false,
   setSearchOpen: (open) => set({ searchOpen: open }),
+  chatOpen: false,
+  setChatOpen: (open) => set({ chatOpen: open }),
   fullWidth: getInitialFullWidth(),
   setFullWidth: (value) => {
     set({ fullWidth: value })

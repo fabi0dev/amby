@@ -2,49 +2,42 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useWorkspaceStore } from '@/stores/workspace-store';
 import { useUIStore } from '@/stores/ui-store';
-import { House, MagnifyingGlass, Gear, Plus, CaretDown, Check } from '@phosphor-icons/react';
+import { House, Folder, MagnifyingGlass, Gear, Plus, Users } from '@phosphor-icons/react';
 import { createDocument } from '@/app/actions/documents';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
 import { useToast } from '@/components/ui/use-toast';
 import { DocumentTree } from '@/components/tree/document-tree';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useWorkspaces } from '@/hooks/use-workspaces';
-import { CreateWorkspaceDialog } from '@/components/workspace/create-workspace-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { SIDEBAR_NAV_ITEM, SIDEBAR_NAV_ITEM_ACTIVE } from './sidebar-constants';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   workspaceId?: string;
   hasDocument?: boolean;
+  projectId?: string | null;
 }
 
-export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: SidebarProps) {
-  const { currentWorkspace, setCurrentWorkspace } = useWorkspaceStore();
+export function Sidebar({
+  workspaceId: workspaceIdProp,
+  hasDocument = false,
+  projectId,
+}: SidebarProps) {
+  const { currentWorkspace } = useWorkspaceStore();
   const setSearchOpen = useUIStore((s) => s.setSearchOpen);
   const router = useRouter();
+  const pathname = usePathname();
   const workspaceId = workspaceIdProp ?? currentWorkspace?.id;
-  const isOverview = !!workspaceId && !hasDocument;
+  const isOverview = !!workspaceId && pathname === `/workspace/${workspaceId}/overview`;
+  const isDocspaceHome = !!workspaceId && pathname === `/workspace/${workspaceId}` && !hasDocument;
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isCreatingPage, setIsCreatingPage] = useState(false);
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
-  const { data: workspaces = [], isLoading: isLoadingWorkspaces } = useWorkspaces();
-
-  const handleSwitchWorkspace = (id: string, name: string) => {
-    setCurrentWorkspace({ id, name } as typeof currentWorkspace);
-    router.push(`/workspace/${id}`);
-  };
 
   const handleSearch = () => {
     setSearchOpen(true);
@@ -56,18 +49,19 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
     try {
       const result = await createDocument({
         workspaceId: currentWorkspace.id,
-        title: 'Nova Página',
+        title: 'Novo Documento',
+        ...(projectId && { projectId }),
       });
       if (result.data) {
         queryClient.invalidateQueries({
-          queryKey: queryKeys.documents.tree(currentWorkspace.id).queryKey,
+          queryKey: queryKeys.documents.tree(currentWorkspace.id, projectId).queryKey,
         });
-        toast({ title: 'Página criada' });
+        toast({ title: 'Documento criado' });
         router.push(`/workspace/${currentWorkspace.id}/${result.data.id}?focus=title`);
       } else {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível criar a página',
+          description: result.error ?? 'Não foi possível criar o documento',
           variant: 'destructive',
         });
       }
@@ -76,135 +70,92 @@ export function Sidebar({ workspaceId: workspaceIdProp, hasDocument = false }: S
     }
   };
 
-  return (
-    <div className="flex h-full w-64 flex-col border-r border-border bg-card animate-fade-in">
-      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-        <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
-          {currentWorkspace ? (
-            <div className="flex flex-col flex-1 min-h-0 pt-2 space-y-4 animate-fade-in-up">
-              {/* Seletor de workspace */}
-              <div className="flex-shrink-0 px-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className={cn(
-                        'flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-colors',
-                        'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
-                      )}
-                      disabled={isLoadingWorkspaces}
-                    >
-                      <span className="truncate">
-                        {isLoadingWorkspaces ? 'Carregando...' : currentWorkspace.name}
-                      </span>
-                      <CaretDown size={16} className="shrink-0 text-muted-foreground" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[14rem] max-w-[16rem]">
-                    {workspaces.map((w) => (
-                      <DropdownMenuItem
-                        key={w.id}
-                        onClick={() => handleSwitchWorkspace(w.id, w.name)}
-                        className="gap-2"
-                      >
-                        {workspaceId === w.id ? (
-                          <Check size={16} className="shrink-0" />
-                        ) : (
-                          <span className="w-4 shrink-0" />
-                        )}
-                        <span className="truncate">{w.name}</span>
-                      </DropdownMenuItem>
-                    ))}
-                    {workspaces.length === 0 && !isLoadingWorkspaces && (
-                      <DropdownMenuItem disabled>Nenhum workspace disponível</DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      onClick={() => setIsCreateWorkspaceOpen(true)}
-                      className="mt-1 gap-2 border-t pt-2 text-sm"
-                    >
-                      <Plus size={16} className="shrink-0" />
-                      <div className="flex flex-col">
-                        <span className="leading-snug">Novo workspace</span>
-                        <span className="text-[11px] text-muted-foreground leading-snug">
-                          Crie um espaço separado para outro time ou projeto.
-                        </span>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="flex-shrink-0">
-                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Geral
-                </div>
-                <div className="mt-1 space-y-0.5">
-                  <Button
-                    variant="ghost"
-                    asChild
-                    className={cn(SIDEBAR_NAV_ITEM, isOverview && SIDEBAR_NAV_ITEM_ACTIVE)}
-                  >
-                    <Link href={workspaceId ? `/workspace/${workspaceId}` : '#'}>
-                      <House size={22} />
-                      Visão geral
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" className={SIDEBAR_NAV_ITEM} onClick={handleSearch}>
-                    <MagnifyingGlass size={22} />
-                    Buscar
-                  </Button>
-                  <Button variant="ghost" asChild className={SIDEBAR_NAV_ITEM}>
-                    <Link href={`/settings/workspace/${currentWorkspace.id}`}>
-                      <Gear size={22} />
-                      Workspace
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className={SIDEBAR_NAV_ITEM}
-                    onClick={handleNewPage}
-                    disabled={isCreatingPage}
-                  >
-                    {isCreatingPage ? <LoadingSpinner size="sm" /> : <Plus size={22} />}
-                    {isCreatingPage ? 'Criando...' : 'Nova página'}
-                  </Button>
-                </div>
-              </div>
-              <DocumentTree
-                workspaceId={currentWorkspace.id}
-                workspaceName={currentWorkspace.name}
-              />
-            </div>
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-4">
-              <div className="text-sm font-medium">Nenhum workspace selecionado</div>
-              <p className="text-xs text-muted-foreground max-w-[14rem]">
-                Crie um novo workspace para organizar documentos de um time ou projeto.
-              </p>
-              <Button
-                size="sm"
-                onClick={() => setIsCreateWorkspaceOpen(true)}
-                disabled={isLoadingWorkspaces}
-                className="mt-1"
-              >
-                <Plus size={18} className="mr-2" />
-                Criar workspace
-              </Button>
-            </div>
-          )}
+  if (!currentWorkspace) {
+    return (
+      <div className="flex h-full w-64 flex-col bg-gradient-to-b from-background/95 via-background to-muted/20 border-r border-border/40 animate-fade-in">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center px-4">
+          <p className="text-sm text-muted-foreground max-w-[14rem]">
+            Selecione um workspace no header para acessar o Docspace.
+          </p>
         </div>
       </div>
-      <CreateWorkspaceDialog
-        open={isCreateWorkspaceOpen}
-        onOpenChange={setIsCreateWorkspaceOpen}
-        onCreated={(workspace) => {
-          toast({ title: 'Workspace criado' });
-          setCurrentWorkspace({
-            id: workspace.id,
-            name: workspace.name,
-          } as typeof currentWorkspace);
-          router.push(`/workspace/${workspace.id}`);
-        }}
-      />
+    );
+  }
+
+  return (
+    <div className="flex h-full w-64 flex-col bg-gradient-to-b from-background/95 via-background to-muted/20 border-r border-border/40 animate-fade-in">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+        <div className="flex flex-col flex-1 min-h-0 p-4 space-y-1">
+          <div className="flex flex-col flex-1 min-h-0 pt-2 space-y-4 animate-fade-in-up">
+            <div className="flex-shrink-0 rounded-xl bg-muted/10 px-3 py-2 space-y-1 shadow-sm">
+              <div className="px-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Workspace
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <Button variant="ghost" size="sm" asChild className="justify-start gap-2 h-8">
+                  <Link href={`/settings/workspace/${currentWorkspace.id}`}>
+                    <Gear size={18} />
+                    Configurações
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild className="justify-start gap-2 h-8">
+                  <Link href={`/settings/workspace/${currentWorkspace.id}/members`}>
+                    <Users size={18} />
+                    Membros
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-shrink-0">
+              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Navegação
+              </div>
+              <div className="mt-1 space-y-0.5">
+                <Button
+                  variant="ghost"
+                  asChild
+                  className={cn(SIDEBAR_NAV_ITEM, isDocspaceHome && SIDEBAR_NAV_ITEM_ACTIVE)}
+                >
+                  <Link href={workspaceId ? `/workspace/${workspaceId}` : '#'}>
+                    <Folder size={22} />
+                    Projetos
+                  </Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  asChild
+                  className={cn(SIDEBAR_NAV_ITEM, isOverview && SIDEBAR_NAV_ITEM_ACTIVE)}
+                >
+                  <Link href={workspaceId ? `/workspace/${workspaceId}/overview` : '#'}>
+                    <House size={22} />
+                    Visão geral
+                  </Link>
+                </Button>
+                <Button variant="ghost" className={SIDEBAR_NAV_ITEM} onClick={handleSearch}>
+                  <MagnifyingGlass size={22} />
+                  Buscar
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={SIDEBAR_NAV_ITEM}
+                  onClick={handleNewPage}
+                  disabled={isCreatingPage}
+                >
+                  {isCreatingPage ? <LoadingSpinner size="sm" /> : <Plus size={22} />}
+                  {isCreatingPage ? 'Criando...' : 'Novo documento'}
+                </Button>
+              </div>
+            </div>
+
+            <DocumentTree
+              workspaceId={currentWorkspace.id}
+              workspaceName={currentWorkspace.name}
+              projectId={projectId}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

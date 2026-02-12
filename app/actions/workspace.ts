@@ -24,13 +24,13 @@ const updateWorkspaceSchema = z.object({
 const inviteSchema = z.object({
   workspaceId: z.string(),
   email: z.string().email(),
-  role: z.enum(['ADMIN', 'EDITOR', 'VIEWER']),
+  role: z.enum(['ADMIN', 'VIEWER']),
 });
 
 const updateMemberSchema = z.object({
   workspaceId: z.string(),
   userId: z.string(),
-  role: z.enum(['ADMIN', 'EDITOR', 'VIEWER']),
+  role: z.enum(['ADMIN', 'VIEWER']),
 });
 
 const removeMemberSchema = z.object({
@@ -41,6 +41,11 @@ const removeMemberSchema = z.object({
 const cancelInviteSchema = z.object({
   workspaceId: z.string(),
   inviteId: z.string(),
+});
+
+const workspaceAppSchema = z.object({
+  workspaceId: z.string(),
+  appId: z.string().min(1),
 });
 
 export async function createWorkspace(data: z.infer<typeof createWorkspaceSchema>) {
@@ -70,8 +75,13 @@ export async function createWorkspace(data: z.infer<typeof createWorkspaceSchema
       },
     });
 
-    revalidatePath('/home');
+    await prisma.workspaceApp.create({
+      data: { workspaceId: workspace.id, appId: 'docspace', sortOrder: 0 },
+    });
+
+    revalidatePath('/dashboard');
     revalidatePath(`/workspace/${workspace.id}`);
+    revalidatePath(`/w/${workspace.id}`);
     return { data: workspace };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -218,7 +228,7 @@ export async function updateMemberRole(data: z.infer<typeof updateMemberSchema>)
     if (error instanceof z.ZodError) {
       return { error: error.errors[0].message };
     }
-    return { error: 'Erro ao atualizar papel' };
+    return { error: 'Erro ao atualizar permissão' };
   }
 }
 
@@ -292,5 +302,73 @@ export async function cancelInvite(data: z.infer<typeof cancelInviteSchema>) {
       return { error: error.errors[0].message };
     }
     return { error: 'Erro ao cancelar convite' };
+  }
+}
+
+export async function addWorkspaceApp(data: z.infer<typeof workspaceAppSchema>) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return { error: 'Não autenticado' };
+
+    const { workspaceId, appId } = workspaceAppSchema.parse(data);
+
+    const member = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    });
+    if (!member || !canManage(member.role)) {
+      return { error: 'Sem permissão para alterar apps do espaço' };
+    }
+
+    await prisma.workspaceApp.upsert({
+      where: { workspaceId_appId: { workspaceId, appId } },
+      update: {},
+      create: {
+        workspaceId,
+        appId,
+        sortOrder: await prisma.workspaceApp.count({ where: { workspaceId } }),
+      },
+    });
+
+    revalidatePath(`/settings/workspace/${workspaceId}`);
+    revalidatePath(`/workspace/${workspaceId}`);
+    revalidatePath(`/w/${workspaceId}`);
+    revalidatePath('/dashboard');
+    return { data: { ok: true } };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.errors[0].message };
+    }
+    return { error: 'Erro ao adicionar app' };
+  }
+}
+
+export async function removeWorkspaceApp(data: z.infer<typeof workspaceAppSchema>) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return { error: 'Não autenticado' };
+
+    const { workspaceId, appId } = workspaceAppSchema.parse(data);
+
+    const member = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    });
+    if (!member || !canManage(member.role)) {
+      return { error: 'Sem permissão para alterar apps do espaço' };
+    }
+
+    await prisma.workspaceApp.deleteMany({
+      where: { workspaceId, appId },
+    });
+
+    revalidatePath(`/settings/workspace/${workspaceId}`);
+    revalidatePath(`/workspace/${workspaceId}`);
+    revalidatePath(`/w/${workspaceId}`);
+    revalidatePath('/dashboard');
+    return { data: { ok: true } };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: error.errors[0].message };
+    }
+    return { error: 'Erro ao remover app' };
   }
 }

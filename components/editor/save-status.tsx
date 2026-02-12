@@ -22,8 +22,7 @@ export function SaveStatus() {
   }, []);
 
   const statusKey = !isOnline ? 'offline' : isSaving || isDirty ? 'saving' : 'saved';
-  const baseClass =
-    'flex items-center gap-2 text-sm font-medium animate-in fade-in-0 duration-200';
+  const baseClass = 'flex items-center gap-2 text-sm font-medium animate-in fade-in-0 duration-200';
 
   if (!isOnline) {
     return (

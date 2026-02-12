@@ -28,7 +28,7 @@ interface ChatMessagesListProps {
   growWithContent?: boolean;
   /** Chamado quando o usuário clica em "Pesquisar no workspace" (query = pergunta original). */
   onSearchWorkspace?: (query: string) => void;
-  /** Chamado quando o usuário confirma uma ação do chat (criar workspace, página, etc.). */
+  /** Chamado quando o usuário confirma uma ação do chat (criar workspace, documento, etc.). */
   onExecuteChatAction?: (action: ChatAction) => void;
   /** Indica que uma ação está sendo executada (desabilita botões). */
   executingAction?: boolean;
@@ -169,7 +169,7 @@ export function ChatMessagesList({
                       ? 'Criando...'
                       : message.actions.chatAction.type === 'create_workspace'
                         ? `Criar workspace "${message.actions.chatAction.name}"`
-                        : `Criar página "${message.actions.chatAction.title}"`}
+                        : `Criar documento "${message.actions.chatAction.title}"`}
                   </Button>
                 )}
                 {message.actions?.suggestWorkspaceSearch &&

@@ -17,6 +17,11 @@ enum Role {
   VIEWER
 }
 
+enum ProjectRole {
+  EDITOR
+  VIEWER
+}
+
 enum Permission {
   READ
   WRITE
@@ -44,13 +49,29 @@ model User {
   sessions          Session[]
   workspaceMembers  WorkspaceMember[]
   workspaceInvites  WorkspaceInvite[]
+  projectMembers    ProjectMember[]
   documentComments  DocumentComment[]
   documentVersions  DocumentVersion[]
   documentShares    DocumentShare[]
   chatSessions      ChatSession[]
   chatMessages      ChatMessage[]
+  userApps          UserApp[]
 
   @@map("users")
+}
+
+model UserApp {
+  id        String   @id @default(cuid())
+  userId    String
+  appId     String   // id do app no registry (ex: docspace)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, appId])
+  @@index([userId])
+  @@map("user_apps")
 }
 
 model Account {
@@ -100,13 +121,64 @@ model Workspace {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members     WorkspaceMember[]
-  invites     WorkspaceInvite[]
-  documents    Document[]
-  documentTree DocumentTree[]
-  chatSessions ChatSession[]
+  members       WorkspaceMember[]
+  invites       WorkspaceInvite[]
+  documents     Document[]
+  documentTree  DocumentTree[]
+  chatSessions  ChatSession[]
+  workspaceApps WorkspaceApp[]
+  projects      Project[]
 
   @@map("workspaces")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  slug        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members   ProjectMember[]
+  documents Document[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(VIEWER)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+model WorkspaceApp {
+  id          String   @id @default(cuid())
+  workspaceId String
+  appId       String   // id do app no registry (ex: docspace)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, appId])
+  @@index([workspaceId])
+  @@map("workspace_apps")
 }
 
 model WorkspaceMember {
@@ -145,6 +217,7 @@ model WorkspaceInvite {
 model Document {
   id          String   @id @default(cuid())
   workspaceId String
+  projectId   String?
   title       String
   slug        String
   content     Json     @default("{}")
@@ -154,6 +227,7 @@ model Document {
   deletedAt   DateTime?
 
   workspace      Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project        Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
   tree           DocumentTree?
   versions       DocumentVersion[]
   comments       DocumentComment[]
@@ -164,6 +238,7 @@ model Document {
   @@unique([workspaceId, slug])
   @@index([workspaceId])
   @@index([workspaceId, slug])
+  @@index([projectId])
   @@map("documents")
 }
 

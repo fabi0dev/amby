@@ -10,7 +10,7 @@ interface MainLayoutContentProps {
   onSearchOpen: (open: boolean) => void;
 }
 
-/** Rota é uma página de documento no workspace? /workspace/[id]/[documentId] */
+/** Rota é uma rota de documento no workspace? /workspace/[id]/[documentId] */
 function isWorkspaceDocumentPath(pathname: string | null): boolean {
   if (!pathname) return false;
   const match = pathname.match(/^\/workspace\/([^/]+)\/([^/]+)$/);
@@ -22,7 +22,7 @@ export function MainLayoutContent({ children, onSearchOpen }: MainLayoutContentP
   const { setCurrentDocument } = useDocumentStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Ao sair da página de um documento, limpa o documento focado para o chat e editor
+  // Ao sair da rota de um documento, limpa o documento focado para o chat e editor
   useEffect(() => {
     if (!isWorkspaceDocumentPath(pathname)) {
       setCurrentDocument(null);

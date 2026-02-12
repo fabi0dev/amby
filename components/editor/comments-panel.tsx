@@ -10,11 +10,7 @@ interface CommentsPanelProps {
 }
 
 export function CommentsPanel({ editor, hideHeader = false }: CommentsPanelProps) {
-  const {
-    currentDocument,
-    activeCommentId,
-    setActiveCommentId,
-  } = useDocumentStore();
+  const { currentDocument, activeCommentId, setActiveCommentId } = useDocumentStore();
 
   const comments = currentDocument?.comments ?? [];
 

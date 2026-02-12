@@ -86,7 +86,7 @@
   }
 }
 
-/* Lista de páginas (sidebar) – reserva espaço da scrollbar */
+/* Lista de documentos (sidebar) – reserva espaço da scrollbar */
 .document-tree-list {
   scrollbar-gutter: stable;
 }
@@ -106,7 +106,7 @@
   scrollbar-gutter: stable;
 }
 
-/* Histórico da página – reserva espaço da scrollbar */
+/* Histórico do documento – reserva espaço da scrollbar */
 .page-history-scroll {
   scrollbar-gutter: stable;
 }
@@ -425,6 +425,25 @@
     hsl(222.2 84% 5.5%) 100%
   );
 }
+/* Ícone do chatbot (Docspace) – entrada com leve bounce */
+@keyframes chat-dock-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.4) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.chat-dock-enter {
+  animation: chat-dock-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-panel-left,
   .auth-form-enter,
@@ -439,6 +458,11 @@
   .auth-form-enter-delay-9 {
     animation: none !important;
   }
+  .chat-dock-enter {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* Redução de movimento para acessibilidade */
@@ -449,6 +473,7 @@
   .animate-scale-in,
   .animate-stagger-in,
   .transition-smooth,
+  .chat-dock-enter,
   [class*="animate-"] {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;

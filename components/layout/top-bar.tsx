@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, MagnifyingGlass, Bell, Question, User } from '@phosphor-icons/react';
 import { APP_NAME } from '@/lib/config';
 import { UserMenu } from './user-menu';
-import { useState } from 'react';
+import { WorkspaceSwitcher } from './workspace-switcher';
 import { useUIStore } from '@/stores/ui-store';
 
 interface TopBarProps {
@@ -30,7 +30,7 @@ export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: To
     <div className="relative z-50 flex items-center justify-between border-b border-border bg-card px-6 py-3 animate-fade-in-down">
       <div className="flex items-center gap-3">
         <Link
-          href="/home"
+          href="/dashboard"
           className="flex items-center gap-2 group cursor-pointer transition-smooth"
         >
           <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 group-hover:scale-105 transition-smooth">
@@ -56,7 +56,7 @@ export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: To
         </button>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className={iconButtonClass}>
           <Question size={22} />
         </Button>
@@ -78,6 +78,8 @@ export function TopBar({ onSearchClick, userMenuOpen, onUserMenuOpenChange }: To
             </Button>
           }
         />
+        <div className="h-5 w-px bg-border" aria-hidden />
+        <WorkspaceSwitcher />
       </div>
     </div>
   );

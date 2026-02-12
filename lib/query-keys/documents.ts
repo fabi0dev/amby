@@ -9,8 +9,8 @@ export const documents = createQueryKeys('documents', {
     queryKey: [workspaceId, documentId],
     queryFn: null,
   }),
-  tree: (workspaceId: string) => ({
-    queryKey: [workspaceId, 'tree'],
+  tree: (workspaceId: string, projectId?: string | null) => ({
+    queryKey: [workspaceId, 'tree', projectId ?? 'all'],
     queryFn: null,
   }),
   versions: (documentId: string) => ({

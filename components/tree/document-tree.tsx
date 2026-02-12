@@ -41,10 +41,19 @@ interface TreeNode {
     title: string;
     slug: string;
     updatedAt: string;
+    projectId: string | null;
   };
 }
 
-function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }) {
+function TreeItem({
+  node,
+  workspaceId,
+  projectId,
+}: {
+  node: TreeNode;
+  workspaceId: string;
+  projectId?: string | null;
+}) {
   const { setCurrentDocument, currentDocument } = useDocumentStore();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -75,13 +84,13 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
           router.push(`/workspace/${workspaceId}`);
         }
         queryClient.invalidateQueries({
-          queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+          queryKey: queryKeys.documents.tree(workspaceId, projectId).queryKey,
         });
-        toast({ title: 'Página excluída' });
+        toast({ title: 'Documento excluído' });
       } else {
         toast({
           title: 'Erro',
-          description: result?.error ?? 'Não foi possível excluir a página',
+          description: result?.error ?? 'Não foi possível excluir o documento',
           variant: 'destructive',
         });
       }
@@ -100,14 +109,14 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
       if (result.error || !result.data) {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível duplicar a página',
+          description: result.error ?? 'Não foi possível duplicar o documento',
           variant: 'destructive',
         });
         return;
       }
-      toast({ title: 'Página duplicada' });
+      toast({ title: 'Documento duplicado' });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+        queryKey: queryKeys.documents.tree(workspaceId, projectId).queryKey,
       });
       router.push(`/workspace/${workspaceId}/${result.data.id}`);
     } finally {
@@ -124,7 +133,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
       if (result.error || !result.data) {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível exportar a página',
+          description: result.error ?? 'Não foi possível exportar o documento',
           variant: 'destructive',
         });
         return;
@@ -141,7 +150,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      toast({ title: 'Página exportada como Markdown' });
+      toast({ title: 'Documento exportado como Markdown' });
     } finally {
       setIsExporting(false);
     }
@@ -150,8 +159,8 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
   return (
     <div className="select-none">
       <div
-        className={`relative flex items-center gap-2 rounded-lg px-2 py-1.5 transition-smooth group cursor-pointer ${
-          isActive ? 'bg-primary/10 text-primary' : 'hover:bg-muted/40'
+        className={`relative flex items-center gap-2 rounded-md px-2 py-1.5 transition-smooth group cursor-pointer ${
+          isActive ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5 hover:text-primary'
         }`}
         style={{ paddingLeft: `${node.depth * 14 + 6}px` }}
       >
@@ -159,7 +168,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
           onClick={handleClick}
           title={node.document.title}
           className={`flex-1 min-w-0 text-left text-[13px] font-medium transition-smooth truncate block ${
-            isActive ? 'text-primary font-semibold' : 'text-foreground/90 hover:text-primary'
+            isActive ? 'text-primary font-semibold' : 'text-foreground/90 group-hover:text-primary'
           }`}
         >
           {node.document.title}
@@ -169,10 +178,8 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
             <Button
               variant="ghost"
               size="icon"
-              className={`h-6 w-6 transition-smooth hover:bg-primary/20 hover:text-primary ${
-                isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              }`}
-              aria-label="Mais opções da página"
+              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-smooth hover:bg-primary/10 hover:text-primary"
+              aria-label="Mais opções do documento"
               onClick={(e) => e.stopPropagation()}
             >
               <DotsThree size={18} weight="bold" />
@@ -180,7 +187,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[160px]">
             <DropdownMenuItem className="text-[13px]" onClick={handleExportMarkdown}>
-              Exportar página
+              Exportar documento
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-[13px]"
@@ -205,7 +212,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
                 toast({
                   title: 'Copiar para o espaço',
                   description:
-                    'Funcionalidade de copiar página para outro espaço ainda não está disponível.',
+                    'Funcionalidade de copiar documento para outro espaço ainda não está disponível.',
                 });
               }}
             >
@@ -216,7 +223,7 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
               className="text-destructive focus:text-destructive text-[13px]"
               onClick={handleDeleteDocument}
             >
-              Excluir página
+              Excluir documento
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -225,8 +232,8 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
       <ConfirmDialog
         open={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}
-        title="Excluir página"
-        description="Tem certeza que deseja excluir esta página? Esta ação não pode ser desfeita."
+        title="Excluir documento"
+        description="Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita."
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
         loading={isDeleting}
@@ -237,15 +244,19 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
         onOpenChange={setIsMoveDialogOpen}
         documentId={node.documentId}
         documentTitle={node.document.title}
-        currentWorkspaceId={workspaceId}
-        onMoved={(targetWorkspaceId) => {
+        workspaceId={workspaceId}
+        currentProjectId={node.document.projectId}
+        onMoved={(targetProjectId) => {
           queryClient.invalidateQueries({
-            queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+            predicate: (query) =>
+              query.queryKey[0] === 'documents' &&
+              query.queryKey[1] === workspaceId &&
+              query.queryKey[2] === 'tree',
           });
-          if (currentDocument?.id === node.document.id) {
-            router.push(`/workspace/${targetWorkspaceId}/${node.document.id}`);
-          }
-          toast({ title: 'Página movida' });
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.documents.detail(workspaceId, node.documentId).queryKey,
+          });
+          toast({ title: 'Documento movido' });
         }}
       />
     </div>
@@ -255,12 +266,14 @@ function TreeItem({ node, workspaceId }: { node: TreeNode; workspaceId: string }
 export function DocumentTree({
   workspaceId,
   workspaceName,
+  projectId,
 }: {
   workspaceId: string;
   workspaceName?: string | null;
+  projectId?: string | null;
 }) {
   const router = useRouter();
-  const { data: tree, isLoading } = useDocumentTree(workspaceId);
+  const { data: tree, isLoading } = useDocumentTree(workspaceId, projectId);
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isCreating, setIsCreating] = useState(false);
@@ -281,18 +294,19 @@ export function DocumentTree({
     try {
       const result = await createDocument({
         workspaceId,
-        title: 'Nova Página',
+        title: 'Novo Documento',
+        ...(projectId && { projectId }),
       });
       if (result.data) {
         queryClient.invalidateQueries({
-          queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+          queryKey: queryKeys.documents.tree(workspaceId, projectId).queryKey,
         });
-        toast({ title: 'Página criada' });
+        toast({ title: 'Documento criado' });
         router.push(`/workspace/${workspaceId}/${result.data.id}?focus=title`);
       } else {
         toast({
           title: 'Erro',
-          description: result.error ?? 'Não foi possível criar a página',
+          description: result.error ?? 'Não foi possível criar o documento',
           variant: 'destructive',
         });
       }
@@ -309,14 +323,14 @@ export function DocumentTree({
             <Tooltip>
               <TooltipTrigger asChild>
                 <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
-                  Páginas
+                  Documentos
                 </h2>
               </TooltipTrigger>
               <TooltipContent>{workspaceName}</TooltipContent>
             </Tooltip>
           ) : (
             <h2 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-[140px]">
-              Páginas
+              Documentos
             </h2>
           )}
           <DropdownMenu>
@@ -341,7 +355,7 @@ export function DocumentTree({
                 disabled={isCreating}
               >
                 {isCreating ? <LoadingSpinner size="sm" /> : <Plus size={14} />}
-                <span className="flex-1">Nova página</span>
+                <span className="flex-1">Novo documento</span>
                 <span className="text-[10px] text-muted-foreground tracking-wide">N</span>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -390,13 +404,13 @@ export function DocumentTree({
                     className="animate-stagger-in"
                     style={{ animationDelay: `${Math.min(index * 40, 320)}ms` }}
                   >
-                    <TreeItem node={node} workspaceId={workspaceId} />
+                    <TreeItem node={node} workspaceId={workspaceId} projectId={projectId} />
                   </div>
                 ))}
               </div>
             ) : (
               <div className="p-2 text-xs text-muted-foreground animate-fade-in">
-                Nenhuma página encontrada para &quot;{searchTerm}&quot;.
+                Nenhum documento encontrado para &quot;{searchTerm}&quot;.
               </div>
             )
           ) : (

@@ -107,8 +107,8 @@ function HistoryVersionList({
             const movedLabel =
               v.event === 'moved'
                 ? meta.fromWorkspaceName && meta.toWorkspaceName
-                  ? `Página movida de ${meta.fromWorkspaceName} para ${meta.toWorkspaceName}`
-                  : 'Página movida para outro espaço'
+                  ? `Documento movido de ${meta.fromWorkspaceName} para ${meta.toWorkspaceName}`
+                  : 'Documento movido para outro espaço'
                 : null;
 
             const isSelected = selectedVersion?.id === v.id;
@@ -385,7 +385,7 @@ export function PageHistoryModal({
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <div className="flex shrink-0 items-center justify-between border-b px-4 py-3">
-            <Dialog.Title className="text-base font-semibold">Histórico da página</Dialog.Title>
+            <Dialog.Title className="text-base font-semibold">Histórico do documento</Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"

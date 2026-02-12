@@ -1,18 +1,20 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { useMemo, useState } from 'react';
-import { moveDocumentToWorkspace } from '@/app/actions/documents';
+import { moveDocumentToProject } from '@/app/actions/documents';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useWorkspaces } from '@/hooks/use-workspaces';
+import { useProjects } from '@/hooks/use-projects';
+import type { ProjectWithCount } from '@/app/actions/projects';
 
 interface MovePageDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   documentId: string;
   documentTitle: string;
-  currentWorkspaceId: string;
-  onMoved?: (targetWorkspaceId: string) => void;
+  workspaceId: string;
+  currentProjectId: string | null;
+  onMoved?: (targetProjectId: string | null) => void;
 }
 
 export function MovePageDialog({
@@ -20,25 +22,28 @@ export function MovePageDialog({
   onOpenChange,
   documentId,
   documentTitle,
-  currentWorkspaceId,
+  workspaceId,
+  currentProjectId,
   onMoved,
 }: MovePageDialogProps) {
   const { toast } = useToast();
-  const { data: workspaces, isLoading } = useWorkspaces();
+  const { data: projects, isLoading } = useProjects(workspaceId);
   const [search, setSearch] = useState('');
-  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const availableWorkspaces = useMemo(
-    () => (workspaces || []).filter((ws) => ws.id !== currentWorkspaceId),
-    [workspaces, currentWorkspaceId],
+  const availableProjects = useMemo(
+    () => (projects || []).filter((p: ProjectWithCount) => p.id !== currentProjectId),
+    [projects, currentProjectId],
   );
 
-  const filteredWorkspaces = useMemo(() => {
+  const filteredProjects = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return availableWorkspaces;
-    return availableWorkspaces.filter((ws) => ws.name.toLowerCase().includes(term));
-  }, [availableWorkspaces, search]);
+    if (!term) return availableProjects;
+    return availableProjects.filter((p: ProjectWithCount) =>
+      p.name.toLowerCase().includes(term),
+    );
+  }, [availableProjects, search]);
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -47,13 +52,13 @@ export function MovePageDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedWorkspaceId || isSubmitting) return;
+    if (selectedProjectId == null || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      const result = await moveDocumentToWorkspace({
+      const result = await moveDocumentToProject({
         documentId,
-        targetWorkspaceId: selectedWorkspaceId,
+        targetProjectId: selectedProjectId,
       });
 
       if (result.error) {
@@ -65,23 +70,21 @@ export function MovePageDialog({
         return;
       }
 
-      const targetWorkspaceId = result.data?.targetWorkspaceId ?? selectedWorkspaceId;
-
       toast({
-        title: 'Página movida',
-        description: 'A página foi movida para o espaço selecionado.',
+        title: 'Documento movido',
+        description: 'O documento foi movido para o projeto selecionado.',
       });
 
-      onMoved?.(targetWorkspaceId);
+      onMoved?.(result.data?.targetProjectId ?? selectedProjectId);
       onOpenChange(false);
       setSearch('');
-      setSelectedWorkspaceId(null);
+      setSelectedProjectId(null);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const hasOtherWorkspaces = availableWorkspaces.length > 0;
+  const hasOtherProjects = availableProjects.length > 0;
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -94,24 +97,26 @@ export function MovePageDialog({
           >
             <div className="space-y-1">
               <Dialog.Title className="text-lg font-semibold text-foreground">
-                Mover página
+                Mover documento
               </Dialog.Title>
               <Dialog.Description className="text-sm text-muted-foreground">
-                Mover página para um espaço diferente.
+                Mover documento para outro projeto do mesmo workspace.
               </Dialog.Description>
               <p className="text-xs text-muted-foreground mt-1">
-                Página atual: <span className="font-medium text-foreground">{documentTitle}</span>
+                Documento atual: <span className="font-medium text-foreground">{documentTitle}</span>
               </p>
             </div>
 
             <div className="space-y-3">
               <label className="space-y-1 text-sm">
-                <span className="text-xs font-medium text-muted-foreground">Pesquisar espaços</span>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Pesquisar projetos
+                </span>
                 <Input
-                  placeholder="Pesquisar espaços"
+                  placeholder="Pesquisar projetos"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  disabled={isLoading || !hasOtherWorkspaces || isSubmitting}
+                  disabled={isLoading || !hasOtherProjects || isSubmitting}
                   className="mt-1"
                 />
               </label>
@@ -119,30 +124,30 @@ export function MovePageDialog({
               <div className="max-h-56 overflow-y-auto rounded-lg border border-border/60 bg-muted/20">
                 {isLoading ? (
                   <div className="px-3 py-4 text-xs text-muted-foreground">
-                    Carregando espaços...
+                    Carregando projetos...
                   </div>
-                ) : !hasOtherWorkspaces ? (
+                ) : !hasOtherProjects ? (
                   <div className="px-3 py-4 text-xs text-muted-foreground">
-                    Você ainda não possui outros espaços disponíveis para mover esta página.
+                    Não há outros projetos disponíveis para mover este documento.
                   </div>
-                ) : filteredWorkspaces.length === 0 ? (
+                ) : filteredProjects.length === 0 ? (
                   <div className="px-3 py-4 text-xs text-muted-foreground">
-                    Nenhum espaço encontrado para &quot;{search}&quot;.
+                    Nenhum projeto encontrado para &quot;{search}&quot;.
                   </div>
                 ) : (
                   <ul className="divide-y divide-border/60">
-                    {filteredWorkspaces.map((ws) => {
-                      const isSelected = selectedWorkspaceId === ws.id;
+                    {filteredProjects.map((p: ProjectWithCount) => {
+                      const isSelected = selectedProjectId === p.id;
                       return (
-                        <li key={ws.id}>
+                        <li key={p.id}>
                           <button
                             type="button"
-                            onClick={() => setSelectedWorkspaceId(ws.id)}
+                            onClick={() => setSelectedProjectId(p.id)}
                             className={`flex w-full items-center justify-between px-3 py-2.5 text-sm text-left transition-smooth ${
                               isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-muted/60'
                             }`}
                           >
-                            <span className="truncate">{ws.name}</span>
+                            <span className="truncate">{p.name}</span>
                             <span
                               className={`ml-2 h-4 w-4 rounded-full border flex items-center justify-center ${
                                 isSelected
@@ -169,7 +174,7 @@ export function MovePageDialog({
               </Button>
               <Button
                 type="submit"
-                disabled={isSubmitting || !selectedWorkspaceId || !hasOtherWorkspaces}
+                disabled={isSubmitting || selectedProjectId === null || !hasOtherProjects}
               >
                 {isSubmitting ? 'Movendo...' : 'Mover'}
               </Button>

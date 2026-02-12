@@ -1,15 +1,17 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { updateWorkspace } from '@/app/actions/workspace';
+import Link from 'next/link';
+import { updateWorkspace, addWorkspaceApp, removeWorkspaceApp } from '@/app/actions/workspace';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { SettingsSectionCard } from '@/components/ui/settings-section-card';
-import { Trash } from '@phosphor-icons/react';
+import { AppIcon } from '@/components/dashboard/app-icon';
+import { APP_REGISTRY } from '@/apps/registry';
+import { Trash, Users, Check, Plus } from '@phosphor-icons/react';
 import { Role } from '@prisma/client';
 import { PageHeader } from '@/components/layout/page-header';
 import { useRouter } from 'next/navigation';
@@ -31,10 +33,15 @@ interface WorkspaceSettingsPageProps {
         image: string | null;
       };
     }>;
+    workspaceApps?: Array<{ appId: string }>;
   };
+  canManageWorkspace?: boolean;
 }
 
-export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps) {
+export function WorkspaceSettingsPage({
+  workspace,
+  canManageWorkspace = false,
+}: WorkspaceSettingsPageProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +50,12 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
   const [name, setName] = useState(workspace.name);
   const [description, setDescription] = useState(workspace.description || '');
+  const [togglingAppId, setTogglingAppId] = useState<string | null>(null);
+
+  const enabledAppIds = useMemo(
+    () => new Set((workspace.workspaceApps ?? []).map((wa) => wa.appId)),
+    [workspace.workspaceApps],
+  );
 
   const workspaceInitials = useMemo(() => {
     const trimmed = workspace.name.trim();
@@ -90,14 +103,27 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
     }
   };
 
-  const getRoleLabel = (role: Role) => {
-    const labels = {
-      OWNER: 'Proprietário',
-      ADMIN: 'Administrador',
-      EDITOR: 'Editor',
-      VIEWER: 'Visualizador',
-    };
-    return labels[role];
+  const getPermissionLabel = (role: Role) => {
+    if (role === 'OWNER' || role === 'ADMIN') return 'Admin';
+    return 'Membro';
+  };
+
+  const handleToggleWorkspaceApp = async (appId: string) => {
+    if (togglingAppId) return;
+    setTogglingAppId(appId);
+    const isEnabled = enabledAppIds.has(appId);
+    const result = isEnabled
+      ? await removeWorkspaceApp({ workspaceId: workspace.id, appId })
+      : await addWorkspaceApp({ workspaceId: workspace.id, appId });
+    setTogglingAppId(null);
+    if (result.error) {
+      toast({ title: 'Erro', description: result.error, variant: 'destructive' });
+    } else {
+      toast({
+        title: isEnabled ? 'App removido do espaço' : 'App ativado no espaço',
+      });
+      router.refresh();
+    }
   };
 
   const handleConfirmDeleteWorkspace = async () => {
@@ -119,13 +145,22 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
   return (
     <div className="flex flex-col w-full min-h-0">
       <PageHeader
-        title="Configurações do Espaço"
-        description="Gerencie as configurações e membros do workspace"
+        title="Configurações do workspace"
+        description={`${workspace.name} — geral, apps e membros`}
         showBackButton
+        onBack={() => router.push(`/w/${workspace.id}`)}
         actions={
-          <Button size="sm" variant="outline" onClick={() => setIsCreateWorkspaceOpen(true)}>
-            Novo workspace
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={`/settings/workspace/${workspace.id}/members`} className="gap-2">
+                <Users size={18} />
+                Membros
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setIsCreateWorkspaceOpen(true)}>
+              Novo workspace
+            </Button>
+          </div>
         }
       />
 
@@ -140,7 +175,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                     {workspaceInitials}
                   </div>
                   <div className="flex-1 space-y-2">
-                    <Label htmlFor="workspaceName">Nome</Label>
+                    <Label htmlFor="workspaceName">Nome do workspace</Label>
                     <Input
                       id="workspaceName"
                       value={name}
@@ -156,7 +191,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                     id="workspaceDescription"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Descrição do workspace (opcional)"
+                    placeholder="Descrição (opcional)"
                   />
                 </div>
 
@@ -168,10 +203,61 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
               </div>
             </SettingsSectionCard>
 
-            <SettingsSectionCard title="Zona de Perigo" icon={<Trash size={22} />} danger>
+            {canManageWorkspace && (
+              <SettingsSectionCard
+                title="Apps do workspace"
+                description="Quem entra neste workspace vê apenas estes apps. Ative ou desative conforme a necessidade do time."
+              >
+                <ul className="space-y-2">
+                  {APP_REGISTRY.map((app) => {
+                    const enabled = enabledAppIds.has(app.id);
+                    const busy = togglingAppId === app.id;
+                    return (
+                      <li
+                        key={app.id}
+                        className="flex items-center gap-3 rounded-lg border border-border bg-background/60 p-3"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <AppIcon name={app.icon} size={22} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium">{app.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {app.description}
+                          </p>
+                        </div>
+                        <Button
+                          variant={enabled ? 'secondary' : 'default'}
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => handleToggleWorkspaceApp(app.id)}
+                          className="shrink-0 gap-1.5"
+                        >
+                          {busy ? (
+                            '...'
+                          ) : enabled ? (
+                            <>
+                              <Check size={16} />
+                              Ativo
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={16} />
+                              Ativar
+                            </>
+                          )}
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </SettingsSectionCard>
+            )}
+
+            <SettingsSectionCard title="Zona de perigo" icon={<Trash size={22} />} danger>
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">Excluir Workspace</h3>
+                  <h3 className="font-semibold mb-2">Excluir workspace</h3>
                   <p className="text-sm text-muted-foreground mb-4">
                     Ao excluir o workspace, todos os documentos e dados serão permanentemente
                     removidos. Esta ação não pode ser desfeita.
@@ -182,7 +268,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
                     disabled={isDeleting}
                   >
                     <Trash size={22} className="mr-2" />
-                    Excluir Workspace
+                    Excluir workspace
                   </Button>
                 </div>
               </div>
@@ -193,7 +279,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
       <ConfirmDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-        title="Excluir Workspace"
+        title="Excluir workspace"
         description="Tem certeza? Todos os documentos e dados serão removidos permanentemente. Esta ação não pode ser desfeita."
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
@@ -208,7 +294,7 @@ export function WorkspaceSettingsPage({ workspace }: WorkspaceSettingsPageProps)
             title: 'Workspace criado',
             description: 'Você foi redirecionado para o novo espaço.',
           });
-          router.push(`/workspace/${newWorkspace.id}`);
+          router.push(`/w/${newWorkspace.id}`);
         }}
       />
     </div>

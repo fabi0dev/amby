@@ -21,6 +21,16 @@ export function getMarkdownFromContent(content: unknown): string {
   if (!content || typeof content !== 'object') return '';
   const doc = content as { content?: Array<Record<string, unknown>> };
   const parts: string[] = [];
+
+  const extractText = (nodes: Array<Record<string, unknown>>): string =>
+    nodes
+      .map((n) => {
+        if (typeof n.text === 'string') return n.text as string;
+        if (Array.isArray(n.content)) return extractText(n.content as Array<Record<string, unknown>>);
+        return '';
+      })
+      .join('');
+
   const visit = (nodes: Array<Record<string, unknown>>, listPrefix = '') => {
     for (const node of nodes) {
       const type = node.type as string;
@@ -33,6 +43,11 @@ export function getMarkdownFromContent(content: unknown): string {
         const level = attrs?.level ?? 1;
         const text = inner.map((c) => (c.text as string) || '').join('');
         parts.push(`${'#'.repeat(level)} ${text}`);
+      } else if (type === 'codeBlock') {
+        const text = extractText(inner);
+        parts.push('```');
+        parts.push(text);
+        parts.push('```');
       } else if (type === 'bulletList' || type === 'orderedList') {
         const isOrdered = type === 'orderedList';
         inner.forEach((item, i) => {

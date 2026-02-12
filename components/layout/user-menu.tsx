@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useWorkspaceStore } from '@/stores/workspace-store';
 import { useUIStore } from '@/stores/ui-store';
 import {
+  Briefcase,
   CaretRight,
   Gear,
   Palette,
@@ -13,6 +14,7 @@ import {
   SlidersHorizontal,
   Users,
 } from '@phosphor-icons/react';
+import { getWorkspaceShortName } from './workspace-switcher';
 import { useState, useRef, useEffect } from 'react';
 import { ThemePicker, type ThemeValue } from './theme-picker';
 interface UserMenuProps {
@@ -54,29 +56,20 @@ export function UserMenu({ open, onOpenChange, trigger }: UserMenuProps) {
       {trigger}
       {open && (
         <div className="absolute right-0 mt-2 w-64 rounded-lg border border-border bg-popover shadow-lg py-2 z-50 animate-fade-in-down origin-top-right">
-          <div className="px-4 pb-2 pt-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase">
-              Espaço de Trabalho
-            </p>
-          </div>
-          <Link
-            href={currentWorkspace ? `/settings/workspace/${currentWorkspace.id}` : '#'}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
-            onClick={() => onOpenChange(false)}
-          >
-            <Gear size={22} />
-            <span>Configurar workspace</span>
-          </Link>
-          <Link
-            href={currentWorkspace ? `/settings/workspace/${currentWorkspace.id}/members` : '#'}
-            className="flex w-full items-center gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
-            onClick={() => onOpenChange(false)}
-          >
-            <Users size={22} />
-            <span>Gerenciar membros</span>
-          </Link>
+          {currentWorkspace && (
+            <>
+              <Link
+                href={`/settings/workspace/${currentWorkspace.id}`}
+                className="flex w-full items-center uppercase gap-2 px-4 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-smooth rounded-md"
+                onClick={() => onOpenChange(false)}
+              >
+                <Briefcase size={14} className="text-muted-foreground shrink-0" />
+                <span> {getWorkspaceShortName(currentWorkspace.name, 24)}</span>
+              </Link>
 
-          <div className="my-2 border-t border-border" />
+              <div className="my-2 border-t border-border" />
+            </>
+          )}
 
           <div className="px-4 pb-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase">Conta</p>

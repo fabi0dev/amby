@@ -53,6 +53,23 @@ async function main() {
 
   console.log('✅ Admin adicionado ao workspace como OWNER')
 
+  // Habilitar app Docspace no workspace (e em todos que ainda não têm nenhum app)
+  const workspaces = await prisma.workspace.findMany({
+    include: { workspaceApps: true },
+  })
+  for (const ws of workspaces) {
+    if (ws.workspaceApps.length === 0) {
+      await prisma.workspaceApp.upsert({
+        where: {
+          workspaceId_appId: { workspaceId: ws.id, appId: 'docspace' },
+        },
+        update: {},
+        create: { workspaceId: ws.id, appId: 'docspace', sortOrder: 0 },
+      })
+      console.log('✅ App Docspace habilitado no espaço:', ws.name)
+    }
+  }
+
   // Criar documento de exemplo
   const document = await prisma.document.upsert({
     where: {

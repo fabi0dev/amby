@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Role } from '@prisma/client';
-import { Users, ArrowLeft, UserPlus, UserMinus, PaperPlaneTilt, X } from '@phosphor-icons/react';
+import { Users, ArrowLeft, UserPlus, UserMinus } from '@phosphor-icons/react';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
   DropdownMenu,
@@ -53,22 +52,16 @@ interface WorkspaceMembersPageProps {
   canManageMembers: boolean;
 }
 
-type InviteRole = 'ADMIN' | 'EDITOR' | 'VIEWER';
+type InviteRole = 'ADMIN' | 'VIEWER';
 
-const ROLES: { value: InviteRole; label: string }[] = [
-  { value: 'ADMIN', label: 'Administrador' },
-  { value: 'EDITOR', label: 'Editor' },
-  { value: 'VIEWER', label: 'Visualizador' },
+const WORKSPACE_PERMISSIONS: { value: InviteRole; label: string }[] = [
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'VIEWER', label: 'Membro' },
 ];
 
-const getRoleLabel = (role: Role) => {
-  const labels: Record<Role, string> = {
-    OWNER: 'Proprietário',
-    ADMIN: 'Administrador',
-    EDITOR: 'Editor',
-    VIEWER: 'Visualizador',
-  };
-  return labels[role];
+const getPermissionLabel = (role: Role) => {
+  if (role === 'OWNER' || role === 'ADMIN') return 'Admin';
+  return 'Membro';
 };
 
 export function WorkspaceMembersPage({
@@ -90,6 +83,7 @@ export function WorkspaceMembersPage({
   const [cancellingInvite, setCancellingInvite] = useState<string | null>(null);
 
   const invites = workspace.invites ?? [];
+  const currentMember = workspace.members.find((m) => m.userId === currentUserId);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,7 +114,7 @@ export function WorkspaceMembersPage({
       toast({ title: 'Erro', description: result.error, variant: 'destructive' });
       return;
     }
-    toast({ title: 'Papel atualizado' });
+    toast({ title: 'Permissão atualizada' });
     router.refresh();
   };
 
@@ -156,173 +150,138 @@ export function WorkspaceMembersPage({
   const canChangeMember = (member: { userId: string; role: Role }) => {
     if (!canManageMembers) return false;
     if (member.role === 'OWNER') return false;
-    const current = workspace.members.find((m) => m.userId === currentUserId);
-    if (current?.role === 'ADMIN' && member.role === 'ADMIN') return false;
+    if (currentMember?.role === 'ADMIN' && member.role === 'ADMIN') return false;
     return true;
   };
 
   return (
     <div className="flex h-full flex-col mx-auto">
-      <div className="border-b bg-card">
-        <div className="flex items-center gap-4 max-w-3xl mx-auto px-6 md:px-8 py-6">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9">
+      <div className="border-b bg-card/50">
+        <div className="flex items-center gap-4 max-w-5xl mx-auto px-6 md:px-8 py-5">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push(`/w/${workspace.id}`)}
+            className="h-9 w-9"
+            title="Voltar ao workspace"
+          >
             <ArrowLeft size={22} />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Membros do Espaço</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gerencie quem pode acessar e colaborar neste workspace
+          <div className="space-y-1">
+            <h1 className="text-xl md:text-2xl font-semibold truncate">{workspace.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              Gerencie quem pode acessar este workspace e quais ações cada pessoa pode realizar.
             </p>
           </div>
         </div>
       </div>
 
       <div className="flex justify-center flex-shrink-0">
-        <div className="w-full max-w-3xl px-6 py-8 md:px-8 space-y-8">
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Users size={22} />
-                  Membros ({workspace.members.length})
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Convide novas pessoas e gerencie os papéis dos membros existentes.
-                </p>
-              </div>
-              {canManageMembers && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setInviteOpen(true)}
-                >
-                  <UserPlus size={22} />
-                  Adicionar membro
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-2 bg-card rounded-lg border p-6">
-              {workspace.members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary">
-                        {member.user.name?.[0] || member.user.email[0].toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-medium">{member.user.name || member.user.email}</div>
-                      <div className="text-sm text-muted-foreground">{member.user.email}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {canChangeMember(member) ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1.5 min-w-[120px]"
-                            disabled={updatingRole === member.userId}
-                          >
-                            {updatingRole === member.userId ? '...' : getRoleLabel(member.role)}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {ROLES.map((r) => (
-                            <DropdownMenuItem
-                              key={r.value}
-                              onClick={() => handleUpdateRole(member.userId, r.value)}
-                            >
-                              {r.label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <span className="text-sm px-2 py-1 rounded bg-muted text-muted-foreground">
-                        {getRoleLabel(member.role)}
-                      </span>
-                    )}
-                    {canManageMembers &&
-                      member.role !== 'OWNER' &&
-                      (workspace.members.find((m) => m.userId === currentUserId)?.role ===
-                        'OWNER' ||
-                        member.role !== 'ADMIN') && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() =>
-                            setMemberToRemove({
-                              userId: member.userId,
-                              name: member.user.name || member.user.email,
-                            })
-                          }
-                        >
-                          <UserMinus size={22} />
-                        </Button>
-                      )}
-                  </div>
+        <div className="w-full max-w-5xl px-6 py-8 md:px-8">
+          <div className="space-y-8">
+            <section className="space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Users size={22} />
+                    Pessoas neste workspace ({workspace.members.length})
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Veja quem pode acessar este workspace e ajuste permissões de forma segura.
+                  </p>
                 </div>
-              ))}
+                {canManageMembers && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 whitespace-nowrap"
+                    onClick={() => setInviteOpen(true)}
+                  >
+                    <UserPlus size={22} />
+                    Adicionar membro
+                  </Button>
+                )}
+              </div>
 
-              {workspace.members.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Nenhum membro ainda. Adicione alguém para começar a colaborar.
-                </p>
-              )}
-            </div>
-          </section>
-
-          {canManageMembers && invites.length > 0 && (
-            <>
-              <Separator />
-              <section className="space-y-4">
-                <h2 className="text-lg font-semibold flex items-center gap-2">
-                  <PaperPlaneTilt size={22} />
-                  Convites pendentes ({invites.length})
-                </h2>
-                <div className="space-y-2 bg-card rounded-lg border p-4">
-                  {invites.map((invite) => (
-                    <div
-                      key={invite.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
-                    >
-                      <div>
-                        <div className="font-medium">{invite.email}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {getRoleLabel(invite.role)} · Convite enviado por{' '}
-                          {invite.invitedBy.name || invite.invitedBy.email}
+              <div className="space-y-2 bg-card rounded-lg border p-4 md:p-6">
+                {workspace.members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">
+                          {member.user.name?.[0] || member.user.email[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5">
+                        <div className="font-medium leading-tight">
+                          {member.user.name || member.user.email}
+                        </div>
+                        <div className="text-sm text-muted-foreground leading-tight">
+                          {member.user.email}
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-muted-foreground"
-                        disabled={cancellingInvite === invite.id}
-                        onClick={() => handleCancelInvite(invite.id)}
-                      >
-                        {cancellingInvite === invite.id ? '...' : 'Cancelar convite'}
-                      </Button>
                     </div>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
+                    <div className="flex items-center gap-2">
+                      {canChangeMember(member) ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5 min-w-[120px]"
+                              disabled={updatingRole === member.userId}
+                            >
+                              {updatingRole === member.userId ? '...' : getPermissionLabel(member.role)}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {WORKSPACE_PERMISSIONS.map((perm) => (
+                              <DropdownMenuItem
+                                key={perm.value}
+                                onClick={() => handleUpdateRole(member.userId, perm.value)}
+                              >
+                                {perm.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <span className="text-sm px-2 py-1 rounded bg-muted text-muted-foreground">
+                        {getPermissionLabel(member.role)}
+                        </span>
+                      )}
+                      {canManageMembers &&
+                        member.role !== 'OWNER' &&
+                        (currentMember?.role === 'OWNER' || member.role !== 'ADMIN') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() =>
+                              setMemberToRemove({
+                                userId: member.userId,
+                                name: member.user.name || member.user.email,
+                              })
+                            }
+                          >
+                            <UserMinus size={22} />
+                          </Button>
+                        )}
+                    </div>
+                  </div>
+                ))}
 
-          <Separator />
-
-          <section className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Workspace atual</Label>
-            <p className="text-sm text-muted-foreground">{workspace.name}</p>
-          </section>
+                {workspace.members.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Nenhum membro ainda. Adicione alguém para começar a colaborar.
+                  </p>
+                )}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
@@ -349,16 +308,16 @@ export function WorkspaceMembersPage({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="invite-role">Papel</Label>
+                  <Label htmlFor="invite-role">Permissão</Label>
                   <select
                     id="invite-role"
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value as InviteRole)}
                     className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   >
-                    {ROLES.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.label}
+                    {WORKSPACE_PERMISSIONS.map((perm) => (
+                      <option key={perm.value} value={perm.value}>
+                        {perm.label}
                       </option>
                     ))}
                   </select>

@@ -13,12 +13,12 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
+    const projectId = searchParams.get('projectId');
 
     if (!workspaceId) {
       return NextResponse.json({ error: 'workspaceId é obrigatório' }, { status: 400 });
     }
 
-    // Verificar se o usuário tem acesso ao workspace
     const member = await prisma.workspaceMember.findFirst({
       where: {
         workspaceId,
@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
         workspaceId,
         document: {
           deletedAt: null,
+          ...(projectId ? { projectId } : {}),
         },
       },
       include: {
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
             title: true,
             slug: true,
             updatedAt: true,
+            projectId: true,
           },
         },
       },

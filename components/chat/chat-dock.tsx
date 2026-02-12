@@ -1,21 +1,22 @@
 'use client';
 
-import { useState } from 'react';
 import { ChatCircleDots } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
 import { ChatWidget } from './chat-widget';
+import { useUIStore } from '@/stores/ui-store';
 
 export function ChatDock() {
-  const [open, setOpen] = useState(false);
+  const chatOpen = useUIStore((s) => s.chatOpen);
+  const setChatOpen = useUIStore((s) => s.setChatOpen);
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="chat-dock-enter fixed bottom-6 right-6 z-40">
         <Button
           size="icon"
-          variant={open ? 'secondary' : 'default'}
+          variant={chatOpen ? 'secondary' : 'default'}
           className="group h-12 w-12 rounded-full shadow-lg transition-transform duration-200 hover:scale-105 hover:shadow-xl"
-          onClick={() => setOpen(true)}
+          onClick={() => setChatOpen(true)}
           title="Chat com IA"
         >
           <ChatCircleDots
@@ -26,7 +27,7 @@ export function ChatDock() {
         </Button>
       </div>
 
-      <ChatWidget open={open} onOpenChange={setOpen} />
+      <ChatWidget open={chatOpen} onOpenChange={setChatOpen} />
     </>
   );
 }

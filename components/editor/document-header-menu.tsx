@@ -18,7 +18,6 @@ import {
   ChatCircle,
   List,
   DotsThree,
-  Link as LinkIcon,
   DownloadSimple,
   ArrowRight,
   Export,
@@ -36,6 +35,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PageHistoryModal } from './page-history-modal';
 import { AISuggestionsModal } from './ai-suggestions-modal';
+import { ShareLinkModal } from './share-link-modal';
 
 export function DocumentHeaderMenu({
   isReadOnly,
@@ -62,27 +62,6 @@ export function DocumentHeaderMenu({
 
   const { setIsCommentsOpen } = useDocumentStore();
 
-  const handleCopyLink = async () => {
-    if (!currentDocument || !currentWorkspace) return;
-    const url =
-      typeof window !== 'undefined'
-        ? `${window.location.origin}/workspace/${currentWorkspace.id}/${currentDocument.id}`
-        : '';
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({
-        title: 'Link copiado',
-        description: 'O link foi copiado para a área de transferência.',
-      });
-    } catch {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível copiar o link.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const handleCopyMarkdown = async () => {
     if (!currentDocument?.content) return;
     const md = getMarkdownFromContent(currentDocument.content);
@@ -95,14 +74,13 @@ export function DocumentHeaderMenu({
   };
 
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleModeChange = (readOnly: boolean) => {
     if (readOnly === isReadOnly) return;
     toast({
       title: readOnly ? 'Modo leitura' : 'Modo escrita',
-      description: readOnly
-        ? 'Alterado para o modo leitura.'
-        : 'Alterado para o modo escrita.',
+      description: readOnly ? 'Alterado para o modo leitura.' : 'Alterado para o modo escrita.',
     });
     onReadOnlyChange(readOnly);
   };
@@ -189,9 +167,9 @@ export function DocumentHeaderMenu({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={handleCopyLink}>
-              <LinkIcon size={22} className="mr-2" />
-              Copiar link
+            <DropdownMenuItem onClick={() => setIsShareModalOpen(true)}>
+              <Globe size={22} className="mr-2" />
+              Gerar link
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleCopyMarkdown}>
               <DownloadSimple size={22} className="mr-2" />
@@ -212,7 +190,7 @@ export function DocumentHeaderMenu({
             </DropdownMenuCheckboxItem>
             <DropdownMenuItem onClick={() => setIsHistoryOpen(true)}>
               <ClockCounterClockwise size={22} className="mr-2" />
-              Histórico da página
+              Histórico do documento
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -248,6 +226,9 @@ export function DocumentHeaderMenu({
           documentContent={currentDocument.content}
           onInsertSuggestion={onInsertSuggestion}
         />
+      )}
+      {currentWorkspace && currentDocument && (
+        <ShareLinkModal open={isShareModalOpen} onOpenChange={setIsShareModalOpen} />
       )}
     </TooltipProvider>
   );

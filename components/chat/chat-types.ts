@@ -16,7 +16,7 @@ export interface ChatMessageActions {
   openDocument?: OpenDocumentAction;
   suggestWorkspaceSearch?: boolean;
   workspaceSearchQuery?: string;
-  /** Ação executável pelo usuário (criar workspace, página, etc.). */
+  /** Ação executável pelo usuário (criar workspace, documento, etc.). */
   chatAction?: ChatAction;
 }
 

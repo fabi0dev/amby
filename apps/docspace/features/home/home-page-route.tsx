@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { HomePage } from '@/components/pages/home-page';
 import { SystemOffline } from '@/components/system-status/system-offline';
 
-export default async function HomePageRoute() {
+export async function DocspaceHomePageRoute() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -68,10 +68,10 @@ export default async function HomePageRoute() {
 
     const userName =
       session.user.name?.split(' ')[0] || session.user.email?.split('@')[0] || 'Usuário';
-    return (
-      <HomePage userName={userName} workspaces={workspaces} recentDocuments={recentDocuments} />
-    );
-  } catch (error) {
+
+    return <HomePage userName={userName} workspaces={workspaces} recentDocuments={recentDocuments} />;
+  } catch {
     return <SystemOffline />;
   }
 }
+

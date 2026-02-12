@@ -12,21 +12,29 @@ interface TreeDocument {
   title: string;
   slug: string;
   updatedAt: string;
+  projectId?: string | null;
 }
 
-export function WorkspaceOverview({ workspaceId }: { workspaceId: string }) {
+export function WorkspaceOverview({
+  workspaceId,
+  onlyWithoutProject,
+}: {
+  workspaceId: string;
+  onlyWithoutProject?: boolean;
+}) {
   const router = useRouter();
   const { data: tree, isLoading } = useDocumentTree(workspaceId);
 
   const recentlyUpdated = useMemo(() => {
     if (!tree || !Array.isArray(tree)) return [];
-    const docs = (tree as { document: TreeDocument }[])
-      .map((node) => node.document)
-      .filter(Boolean);
+    let docs = (tree as { document: TreeDocument }[]).map((node) => node.document).filter(Boolean);
+    if (onlyWithoutProject) {
+      docs = docs.filter((d) => !d.projectId);
+    }
     return [...docs].sort(
       (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
-  }, [tree]);
+  }, [tree, onlyWithoutProject]);
 
   if (isLoading) {
     return (
@@ -62,7 +70,9 @@ export function WorkspaceOverview({ workspaceId }: { workspaceId: string }) {
           <div className="px-6 py-6 md:px-8">
             {recentlyUpdated.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center">
-                Nenhum documento ainda. Crie uma nova página para começar.
+                {onlyWithoutProject
+                  ? 'Nenhum documento sem projeto. Crie documentos na visão geral ou em um projeto.'
+                  : 'Nenhum documento ainda. Crie um novo documento para começar.'}
               </p>
             ) : (
               <ul className="space-y-0 divide-y divide-border/60">

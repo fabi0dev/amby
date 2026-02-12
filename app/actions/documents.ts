@@ -3,6 +3,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import type { Prisma } from '@prisma/client';
+import { Permission } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { slugify } from '@/lib/utils';
 import { getMarkdownFromContent } from '@/lib/document-content';
@@ -13,6 +14,7 @@ const createDocumentSchema = z.object({
   workspaceId: z.string(),
   title: z.string().min(1),
   parentId: z.string().optional(),
+  projectId: z.string().optional(),
 });
 
 const updateDocumentSchema = z.object({
@@ -31,6 +33,11 @@ const moveDocumentSchema = z.object({
   targetWorkspaceId: z.string(),
 });
 
+const moveDocumentToProjectSchema = z.object({
+  documentId: z.string(),
+  targetProjectId: z.string().nullable(),
+});
+
 export async function createDocument(data: z.infer<typeof createDocumentSchema>) {
   try {
     const session = await getServerSession(authOptions);
@@ -41,7 +48,6 @@ export async function createDocument(data: z.infer<typeof createDocumentSchema>)
 
     const validated = createDocumentSchema.parse(data);
 
-    // Verificar permissão
     const member = await prisma.workspaceMember.findFirst({
       where: {
         workspaceId: validated.workspaceId,
@@ -51,6 +57,24 @@ export async function createDocument(data: z.infer<typeof createDocumentSchema>)
 
     if (!member || !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
       return { error: 'Sem permissão para criar documentos' };
+    }
+
+    if (validated.projectId) {
+      const project = await prisma.project.findFirst({
+        where: {
+          id: validated.projectId,
+          workspaceId: validated.workspaceId,
+        },
+        include: {
+          members: { where: { userId: session.user.id } },
+        },
+      });
+      if (!project) return { error: 'Projeto não encontrado' };
+      const isWsEditor = ['OWNER', 'ADMIN', 'EDITOR'].includes(member.role);
+      const isProjectEditor = project.members[0]?.role === 'EDITOR';
+      if (!isWsEditor && !isProjectEditor) {
+        return { error: 'Sem permissão para criar documentos neste projeto' };
+      }
     }
 
     let slug = slugify(validated.title);
@@ -66,10 +90,10 @@ export async function createDocument(data: z.infer<typeof createDocumentSchema>)
       slug = `${slug}-${Date.now()}`;
     }
 
-    // Criar documento (identificação por id; slug só para compatibilidade do schema)
     const document = await prisma.document.create({
       data: {
         workspaceId: validated.workspaceId,
+        projectId: validated.projectId ?? null,
         title: validated.title,
         slug,
         content: {
@@ -167,10 +191,34 @@ export async function updateDocument(data: z.infer<typeof updateDocumentSchema>)
       return { error: 'Documento não encontrado' };
     }
 
-    // Verificar permissão
     const member = document.workspace.members[0];
-    if (!member || !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
-      return { error: 'Sem permissão para editar documentos' };
+
+    // Verifica se existe algum link de compartilhamento com permissão de escrita
+    // para este documento. Qualquer usuário autenticado com o link pode editar.
+    const shareWithWrite = await prisma.documentShare.findFirst({
+      where: {
+        documentId: document.id,
+        permission: Permission.WRITE,
+      },
+    });
+
+    if (!shareWithWrite) {
+      if (!member || !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
+        return { error: 'Sem permissão para editar documentos' };
+      }
+      if (document.projectId) {
+        const projectMember = await prisma.projectMember.findFirst({
+          where: {
+            projectId: document.projectId,
+            userId: session.user.id,
+          },
+        });
+        const isWsEditor = ['OWNER', 'ADMIN', 'EDITOR'].includes(member.role);
+        const isProjectEditor = projectMember?.role === 'EDITOR';
+        if (!isWsEditor && !isProjectEditor) {
+          return { error: 'Sem permissão para editar documentos deste projeto' };
+        }
+      }
     }
 
     // Criar versão antes de atualizar
@@ -291,8 +339,20 @@ export async function duplicateDocument(data: z.infer<typeof duplicateDocumentSc
     if (!member || !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
       return { error: 'Sem permissão para duplicar documentos' };
     }
+    if (document.projectId) {
+      const projectMember = await prisma.projectMember.findFirst({
+        where: {
+          projectId: document.projectId,
+          userId: session.user.id,
+        },
+      });
+      const isProjectEditor = projectMember?.role === 'EDITOR';
+      if (!['OWNER', 'ADMIN', 'EDITOR'].includes(member.role) && !isProjectEditor) {
+        return { error: 'Sem permissão para duplicar documentos deste projeto' };
+      }
+    }
 
-    const baseTitle = document.title || 'Página sem título';
+    const baseTitle = document.title || 'Documento sem título';
     const newTitle = `${baseTitle} (cópia)`;
 
     let slug = slugify(newTitle);
@@ -315,6 +375,7 @@ export async function duplicateDocument(data: z.infer<typeof duplicateDocumentSc
       const duplicated = await tx.document.create({
         data: {
           workspaceId,
+          projectId: document.projectId,
           title: newTitle,
           slug,
           content: document.content as Prisma.InputJsonValue,
@@ -429,11 +490,11 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
     }
 
     if (!document.tree) {
-      return { error: 'Documento não está na árvore de páginas' };
+      return { error: 'Documento não está na árvore de documentos' };
     }
 
     if (document.workspaceId === validated.targetWorkspaceId) {
-      return { error: 'A página já pertence a este espaço' };
+      return { error: 'O documento já pertence a este espaço' };
     }
 
     const sourceMember = document.workspace.members[0];
@@ -507,10 +568,10 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
               path: newPath,
               ...(isRoot
                 ? {
-                    parentId: null,
-                    depth: 0,
-                    order: newOrder,
-                  }
+                  parentId: null,
+                  depth: 0,
+                  order: newOrder,
+                }
                 : {}),
             },
           });
@@ -562,7 +623,7 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
 
     revalidatePath(`/workspace/${sourceWorkspaceId}`);
     revalidatePath(`/workspace/${targetWorkspaceId}`);
-    revalidatePath(`/home`);
+    revalidatePath('/dashboard');
 
     return { data: result };
   } catch (error) {
@@ -571,5 +632,100 @@ export async function moveDocumentToWorkspace(data: z.infer<typeof moveDocumentS
       return { error: error.errors[0].message };
     }
     return { error: 'Erro ao mover documento para outro espaço' };
+  }
+}
+
+export async function moveDocumentToProject(data: z.infer<typeof moveDocumentToProjectSchema>) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return { error: 'Não autorizado' };
+    }
+
+    const validated = moveDocumentToProjectSchema.parse(data);
+
+    const document = await prisma.document.findUnique({
+      where: { id: validated.documentId },
+      include: {
+        workspace: {
+          include: {
+            members: {
+              where: { userId: session.user.id },
+            },
+          },
+        },
+        tree: true,
+      },
+    });
+
+    if (!document) {
+      return { error: 'Documento não encontrado' };
+    }
+
+    const member = document.workspace.members[0];
+    if (!member || !['OWNER', 'ADMIN', 'EDITOR'].includes(member.role)) {
+      return { error: 'Sem permissão para mover documentos' };
+    }
+
+    if (document.projectId) {
+      const projectMember = await prisma.projectMember.findFirst({
+        where: {
+          projectId: document.projectId,
+          userId: session.user.id,
+        },
+      });
+      const isProjectEditor = projectMember?.role === 'EDITOR';
+      if (!['OWNER', 'ADMIN', 'EDITOR'].includes(member.role) && !isProjectEditor) {
+        return { error: 'Sem permissão para mover documentos deste projeto' };
+      }
+    }
+
+    if (validated.targetProjectId !== null) {
+      const targetProject = await prisma.project.findFirst({
+        where: {
+          id: validated.targetProjectId,
+          workspaceId: document.workspaceId,
+        },
+        include: {
+          members: { where: { userId: session.user.id } },
+        },
+      });
+
+      if (!targetProject) {
+        return { error: 'Projeto de destino não encontrado' };
+      }
+
+      const isWsEditor = ['OWNER', 'ADMIN', 'EDITOR'].includes(member.role);
+      const isProjectEditor = targetProject.members[0]?.role === 'EDITOR';
+      if (!isWsEditor && !isProjectEditor) {
+        return { error: 'Sem permissão para mover documentos para este projeto' };
+      }
+    }
+
+    if (document.projectId === validated.targetProjectId) {
+      return { error: 'O documento já pertence a este projeto' };
+    }
+
+    await prisma.document.update({
+      where: { id: validated.documentId },
+      data: {
+        projectId: validated.targetProjectId,
+      },
+    });
+
+    revalidatePath(`/workspace/${document.workspaceId}`);
+
+    return {
+      data: {
+        targetProjectId: validated.targetProjectId,
+      },
+    };
+  } catch (error) {
+    console.error('Erro ao mover documento de projeto:', error);
+    if (error instanceof z.ZodError) {
+      return { error: error.errors[0].message };
+    }
+    return { error: 'Erro ao mover documento para outro projeto' };
   }
 }

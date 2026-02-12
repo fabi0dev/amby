@@ -12,6 +12,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { useDocumentStore } from '@/stores/document-store';
 import { useUIStore } from '@/stores/ui-store';
 import { useWorkspaceStore } from '@/stores/workspace-store';
@@ -29,6 +30,7 @@ import { TextSelection } from '@tiptap/pm/state';
 
 export function Editor() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
   const { currentWorkspace } = useWorkspaceStore();
   const {
     currentDocument,
@@ -38,6 +40,7 @@ export function Editor() {
     isCommentsOpen,
     setIsCommentsOpen,
   } = useDocumentStore();
+  const searchParams = useSearchParams();
   const workspaceId = currentWorkspace?.id ?? '';
   const defaultPageEditMode = useUIStore((s) => s.defaultPageEditMode);
   const fullWidth = useUIStore((s) => s.fullWidth);
@@ -46,14 +49,27 @@ export function Editor() {
   const [blockMenuPosition, setBlockMenuPosition] = useState<{ top: number; left: number } | null>(
     null,
   );
-  const [isReadOnly, setIsReadOnly] = useState(defaultPageEditMode === 'read');
+  const shareModeParam = searchParams.get('mode');
+  const initialReadOnly =
+    shareModeParam === 'read'
+      ? true
+      : shareModeParam === 'edit'
+        ? false
+        : defaultPageEditMode === 'read';
+  const [isReadOnly, setIsReadOnly] = useState(initialReadOnly);
   const [editorContent, setEditorContent] = useState<any>(currentDocument?.content || null);
   const [lastSavedContent, setLastSavedContent] = useState<string | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const searchParams = useSearchParams();
   /** Ignora o próximo onUpdate vindo de setContent programático ou da montagem inicial do editor */
   const ignoreNextUpdateRef = useRef(true);
+  const wsRef = useRef<WebSocket | null>(null);
+  const wsReconnectTimeoutRef = useRef<number | null>(null);
+  const [clientId] = useState(() =>
+    typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+  );
+
+  const documentsTreeBaseKey = queryKeys.documents.tree(workspaceId, null).queryKey.slice(0, 3);
 
   const editor = useEditor({
     extensions: [
@@ -120,6 +136,22 @@ export function Editor() {
       setIsSaving(true);
       const content = editor.getJSON();
       setEditorContent(content);
+      // Envia conteúdo atualizado para outros clientes via WebSocket (edição cooperativa)
+      try {
+        const ws = wsRef.current;
+        if (ws && ws.readyState === WebSocket.OPEN && currentDocument?.id) {
+          ws.send(
+            JSON.stringify({
+              type: 'content',
+              documentId: currentDocument.id,
+              clientId,
+              content,
+            }),
+          );
+        }
+      } catch (err) {
+        console.error('Erro ao enviar atualização em tempo real:', err);
+      }
       const { from } = editor.state.selection;
       const textBefore = editor.state.doc.textBetween(Math.max(0, from - 1), from, ' ');
       const shouldShowBlockMenu = textBefore === '/';
@@ -182,6 +214,100 @@ export function Editor() {
 
   const debouncedContent = useDebounce(editorContent, 1000);
 
+  // Atualizar modo de edição/leitura quando o link de compartilhamento define o parâmetro ?mode=
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'read') {
+      setIsReadOnly(true);
+    } else if (mode === 'edit') {
+      setIsReadOnly(false);
+    }
+  }, [searchParams]);
+
+  // Conexão WebSocket para sincronização em tempo real entre abas/usuários
+  useEffect(() => {
+    if (!currentDocument?.id) return;
+    const wsUrl = process.env.NEXT_PUBLIC_REALTIME_URL ?? 'ws://localhost:3001';
+
+    let isUnmounted = false;
+
+    const clearReconnectTimeout = () => {
+      if (wsReconnectTimeoutRef.current !== null) {
+        window.clearTimeout(wsReconnectTimeoutRef.current);
+        wsReconnectTimeoutRef.current = null;
+      }
+    };
+
+    const connect = () => {
+      if (isUnmounted) return;
+
+      let ws: WebSocket | null = null;
+      try {
+        ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+      } catch (err) {
+        console.error('Erro ao conectar WebSocket de colaboração:', err);
+        // tenta reconectar depois de um tempo se falhar logo na criação
+        clearReconnectTimeout();
+        wsReconnectTimeoutRef.current = window.setTimeout(connect, 2000);
+        return;
+      }
+
+      ws.onopen = () => {
+        if (!currentDocument?.id || isUnmounted) return;
+        ws?.send(
+          JSON.stringify({
+            type: 'join',
+            documentId: currentDocument.id,
+            clientId,
+          }),
+        );
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data as string);
+          if (
+            msg.type === 'content' &&
+            msg.documentId === currentDocument?.id &&
+            msg.clientId !== clientId &&
+            editor
+          ) {
+            ignoreNextUpdateRef.current = true;
+            editor.commands.setContent(msg.content);
+          }
+        } catch (err) {
+          console.error('Erro ao processar mensagem WebSocket:', err);
+        }
+      };
+
+      const scheduleReconnect = () => {
+        if (isUnmounted) return;
+        clearReconnectTimeout();
+        wsReconnectTimeoutRef.current = window.setTimeout(connect, 2000);
+      };
+
+      ws.onclose = () => {
+        if (isUnmounted) return;
+        scheduleReconnect();
+      };
+
+      ws.onerror = (event) => {
+        console.error('WebSocket erro de colaboração:', event);
+        scheduleReconnect();
+      };
+    };
+
+    connect();
+
+    return () => {
+      isUnmounted = true;
+      clearReconnectTimeout();
+      wsRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDocument?.id, editor, clientId]);
+
   // Fechar BubbleMenu ao clicar fora do menu (incluindo ao clicar em outro lugar do editor)
   useEffect(() => {
     if (!editor) return;
@@ -217,7 +343,7 @@ export function Editor() {
     }
   }, [editor, currentDocument, setEditorContent, setLastSavedContent, setIsDirty, setIsSaving]);
 
-  // Inicializar quando o documento muda (ex.: troca de página)
+  // Inicializar quando o documento muda (ex.: troca de documento)
   useEffect(() => {
     if (currentDocument?.content && currentDocument.id) {
       const contentStr = JSON.stringify(currentDocument.content);
@@ -273,13 +399,14 @@ export function Editor() {
             setLastSavedContent(newContent);
             const updated = { ...currentDocument, content: serializableContent };
             setCurrentDocument(updated);
-            // Atualizar cache do React Query para refletir ao alternar páginas
+            // Atualizar cache do React Query para refletir ao alternar documentos
             queryClient.setQueryData(
               queryKeys.documents.detail(workspaceId, currentDocument.id).queryKey,
               (old: unknown) => (old ? { ...(old as object), ...updated } : updated),
             );
+            // Invalida todas as árvores de documentos deste workspace (inclui projetos específicos)
             queryClient.invalidateQueries({
-              queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+              queryKey: documentsTreeBaseKey,
             });
           }
         } catch (error) {
@@ -297,7 +424,7 @@ export function Editor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedContent]);
 
-  // Focar título ao abrir página nova (?focus=title)
+  // Focar título ao abrir documento nova (?focus=title)
   useEffect(() => {
     if (!currentDocument || searchParams.get('focus') !== 'title') return;
     const input = titleInputRef.current;
@@ -389,8 +516,9 @@ export function Editor() {
                         queryKeys.documents.detail(workspaceId, currentDocument.id).queryKey,
                         (old: unknown) => (old ? { ...(old as object), ...updated } : updated),
                       );
+                      // Invalida todas as árvores de documentos deste workspace para atualizar o sidebar
                       queryClient.invalidateQueries({
-                        queryKey: queryKeys.documents.tree(workspaceId).queryKey,
+                        queryKey: documentsTreeBaseKey,
                       });
                     }
                   } catch (err) {
@@ -449,7 +577,6 @@ export function Editor() {
                   }}
                 />
               )}
-
               <EditorContent
                 editor={editor}
                 className="prose prose-slate dark:prose-invert max-w-none focus:outline-none [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-full [&_.ProseMirror]:prose-p:my-2 [&_.ProseMirror]:prose-headings:my-3"
