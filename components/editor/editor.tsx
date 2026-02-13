@@ -214,7 +214,7 @@ export function Editor() {
     },
   });
 
-  const debouncedContent = useDebounce(editorContent, 1000);
+  const debouncedContent = useDebounce(editorContent, 4000);
 
   // Atualizar modo de edição/leitura quando o link de compartilhamento define o parâmetro ?mode=
   useEffect(() => {

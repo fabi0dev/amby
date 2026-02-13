@@ -367,3 +367,13 @@ model ChatMessage {
   @@index([userId])
   @@map("chat_messages")
 }
+
+model SystemStatsLog {
+  id             String   @id @default(cuid())
+  date           DateTime @unique @db.Date
+  documentsCount Int
+  usersCount     Int
+  createdAt      DateTime @default(now())
+
+  @@map("system_stats_logs")
+}
