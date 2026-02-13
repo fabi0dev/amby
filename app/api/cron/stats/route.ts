@@ -8,9 +8,7 @@ function getTodayUTC(): Date {
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
-  const expectedAuth = process.env.CRON_SECRET
-    ? `Bearer ${process.env.CRON_SECRET}`
-    : null;
+  const expectedAuth = process.env.CRON_SECRET ? `Bearer ${process.env.CRON_SECRET}` : null;
 
   if (expectedAuth && authHeader !== expectedAuth) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
@@ -45,9 +43,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[cron/stats]', error);
-    return NextResponse.json(
-      { error: 'Erro ao registrar estatísticas' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erro ao registrar estatísticas' }, { status: 500 });
   }
 }

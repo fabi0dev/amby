@@ -77,11 +77,7 @@ export function WorkspaceLayout({
   }, [isMobile]);
 
   const contentMarginLeft =
-    !showSidebar || isMobile
-      ? 0
-      : pageListOpen
-        ? SIDEBAR_PANEL_WIDTH
-        : FLOATING_BUTTON_OFFSET;
+    !showSidebar || isMobile ? 0 : pageListOpen ? SIDEBAR_PANEL_WIDTH : FLOATING_BUTTON_OFFSET;
 
   // Persiste o projeto atual quando estiver em rota de projeto ou em um documento do projeto
   useEffect(() => {

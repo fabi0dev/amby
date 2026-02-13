@@ -11,7 +11,11 @@ interface CommentsPanelProps {
   isMobile?: boolean;
 }
 
-export function CommentsPanel({ editor, hideHeader = false, isMobile = false }: CommentsPanelProps) {
+export function CommentsPanel({
+  editor,
+  hideHeader = false,
+  isMobile = false,
+}: CommentsPanelProps) {
   const { currentDocument, activeCommentId, setActiveCommentId } = useDocumentStore();
 
   const comments = currentDocument?.comments ?? [];
@@ -76,7 +80,11 @@ export function CommentsPanel({ editor, hideHeader = false, isMobile = false }: 
                 | null
                 | undefined;
               let selectionText = '';
-              if (position && typeof position.from === 'number' && typeof position.to === 'number') {
+              if (
+                position &&
+                typeof position.from === 'number' &&
+                typeof position.to === 'number'
+              ) {
                 try {
                   selectionText = editor.state.doc.textBetween(position.from, position.to, ' ');
                 } catch {
